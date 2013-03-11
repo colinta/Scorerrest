@@ -8,7 +8,6 @@ require 'sugarcube-gestures'
 Motion::Project::App.setup do |app|
   app.name = 'Scorerrest'
   app.identifier = 'com.colinta.Scorerrest'
-  app.files_dependencies 'app/app_delegate.rb' => 'app/styles.rb'
   app.icons = ['AppIcon-114.png', 'AppIcon-57.png', 'AppIcon-144.png', 'AppIcon-72.png']
   app.version = '1.0.0'
   app.device_family = [:iphone, :ipad]
