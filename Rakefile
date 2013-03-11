@@ -14,7 +14,7 @@ Motion::Project::App.setup do |app|
   app.archs['iPhoneOS'] = ['armv7']
 
   # add local sources
-  %w{lib vendor/gradient_view app}.map{|d| Dir.glob(File.join(app.project_dir, "#{d}/**/*.rb")) }.flatten.each do |file|
+  Dir.glob(File.join(app.project_dir, 'lib/**/*.rb')).flatten.each do |file|
     app.files.push(file)
   end
 
