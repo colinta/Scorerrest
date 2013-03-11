@@ -1,0 +1,48 @@
+GIT
+  remote: git@github.com:colinta/graymatter
+  revision: 9b043bab65aeddd06d0d069d8031e5b0962c75e7
+  specs:
+    graymatter (0.4.2)
+      geomotion
+      sugarcube
+
+GIT
+  remote: git@github.com:colinta/sweettea
+  revision: 01272bf6bcbf77ae6cf9b84944a81611437f5930
+  specs:
+    sweettea (0.5.6)
+      rake
+      sugarcube
+      teacup
+
+GIT
+  remote: git@github.com:rubymotion/sugarcube
+  revision: e1d8b237684a06cf0097f6ffe77bf8adb2d8a7f9
+  specs:
+    sugarcube (0.18.20)
+
+GIT
+  remote: git@github.com:rubymotion/teacup
+  revision: 31a78bf2b2409690bb552180b35274a45f645cc4
+  specs:
+    teacup (1.2.8)
+      rake
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    bubble-wrap (1.1.5)
+    geomotion (0.7.0)
+    rake (10.0.3)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bubble-wrap
+  geomotion
+  graymatter!
+  rake
+  sugarcube!
+  sweettea!
+  teacup!

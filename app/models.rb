@@ -1,0 +1,2 @@
+PlayersChangedNotification = 'PlayersChangedNotification'
+GamesChangedNotification = 'GamesChangedNotification'
