@@ -9,8 +9,10 @@ class AppLauncherView < UIControl
     if Device.ipad?
       icon += '72'
     end
+
     @icon = icon.uiimage
-    unless @pressed_icon = "#{icon}-Pressed".uiimage
+    @pressed_icon = "#{icon}-Pressed".uiimage
+    unless @pressed_icon
       @pressed_icon = @icon.darken
     end
 
