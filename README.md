@@ -3,17 +3,13 @@ Scorerrest
 
 Scorerrest is a board/dice/card/social game scoring app.
 
-You will still need to *own* these games in order to play them, Scorerrest only
-scores, it is not a game in and of itself.
+Usage:
 
-The tally feature is the handiest, since most games involve scoring points of
-*some* kind, and you can easily adapt it to other games.  The other scoring apps
-are for convenience or fun.
+- You should start with the big green "+" button, and add the people you play games with.  Then select the people playing, in the order you are playing in.
+- You can use the -5/-1/+1/+5 buttons to quickly add up that player's score, then hit "OK" to add that score to the current player.
+- You can tap a player to make them "current".
+- Use the keypad (123 button) to type out any score, especially useful to assign large scores, like for Farkle where scores can get ridiculous.
+- Use the memory feature (M+) to add up scores for the current player, useful for games that have lots of ways to get points, like Triominoes, Cribbage, and Klabberjass.
+- Use the undo (⤺) or restart buttons (⟲) to modify the history.
 
-Games
-=====
-
-Here are the game rules that it can score so far.
-
-1. Tally - Use this for any score-keeping game
-2. Timer - useful for Catch Phrase, Taboo
+Enjoy!

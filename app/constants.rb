@@ -1,2 +1,0 @@
-PlayersChangedNotification = 'PlayersChangedNotification'
-GamesChangedNotification = 'GamesChangedNotification'
