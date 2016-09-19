@@ -12,30 +12,30 @@ func log(message: String) {
     print(message)
 }
 #else
-func log(message: String) {}
+func log(_ message: String) {}
 #endif
 
 
 // MARK: Animations
 
 public struct AnimationOptions {
-    let duration: NSTimeInterval
-    let delay: NSTimeInterval
+    let duration: TimeInterval
+    let delay: TimeInterval
     let options: UIViewAnimationOptions
     let completion: ((Bool) -> Void)?
 }
 
-public let DefaultAnimationDuration: NSTimeInterval = 0.2
-public let DefaultAppleAnimationDuration: NSTimeInterval = 0.3
-public func animate(duration duration: NSTimeInterval = DefaultAnimationDuration, delay: NSTimeInterval = 0, options: UIViewAnimationOptions = .TransitionNone, animated: Bool? = nil, completion: ((Bool) -> Void)? = nil, animations: () -> Void) {
+public let DefaultAnimationDuration: TimeInterval = 0.2
+public let DefaultAppleAnimationDuration: TimeInterval = 0.3
+public func animate(duration: TimeInterval = DefaultAnimationDuration, delay: TimeInterval = 0, options: UIViewAnimationOptions = UIViewAnimationOptions(), animated: Bool? = nil, completion: ((Bool) -> Void)? = nil, animations: @escaping () -> Void) {
     let shouldAnimate: Bool = animated ?? true
     let options = AnimationOptions(duration: duration, delay: delay, options: options, completion: completion)
     animate(options, animated: shouldAnimate, animations: animations)
 }
 
-public func animate(options: AnimationOptions, animated: Bool = true, animations: () -> Void) {
+public func animate(_ options: AnimationOptions, animated: Bool = true, animations: @escaping () -> Void) {
     if animated {
-        UIView.animateWithDuration(options.duration, delay: options.delay, options: options.options, animations: animations, completion: options.completion)
+        UIView.animate(withDuration: options.duration, delay: options.delay, options: options.options, animations: animations, completion: options.completion)
     }
     else {
         animations()
@@ -47,15 +47,15 @@ public func animate(options: AnimationOptions, animated: Bool = true, animations
 // MARK: Async, Timed, and Throttled closures
 
 public typealias BasicBlock = (() -> Void)
-public typealias ThrottledBlock = ((BasicBlock) -> Void)
-public typealias CancellableBlock = Bool -> Void
+public typealias ThrottledBlock = ((@escaping BasicBlock) -> Void)
+public typealias CancellableBlock = (Bool) -> Void
 public typealias TakesIndexBlock = ((Int) -> Void)
 
 
-public class Proc {
+open class Proc {
     var block: BasicBlock
 
-    public init(_ block: BasicBlock) {
+    public init(_ block: @escaping BasicBlock) {
         self.block = block
     }
 
@@ -66,15 +66,15 @@ public class Proc {
 }
 
 
-public func times(times: Int, @noescape block: BasicBlock) {
+public func times(_ times: Int, block: BasicBlock) {
     times_(times) { (index: Int) in block() }
 }
 
-public func times(times: Int, @noescape block: TakesIndexBlock) {
+public func times(_ times: Int, block: TakesIndexBlock) {
     times_(times, block: block)
 }
 
-private func times_(times: Int, @noescape block: TakesIndexBlock) {
+private func times_(_ times: Int, block: TakesIndexBlock) {
     if times <= 0 {
         return
     }
@@ -83,7 +83,7 @@ private func times_(times: Int, @noescape block: TakesIndexBlock) {
     }
 }
 
-public func after(times: Int, block: BasicBlock) -> BasicBlock {
+public func after(_ times: Int, block: @escaping BasicBlock) -> BasicBlock {
     if times == 0 {
         block()
         return {}
@@ -98,7 +98,7 @@ public func after(times: Int, block: BasicBlock) -> BasicBlock {
     }
 }
 
-public func until(times: Int, block: BasicBlock) -> BasicBlock {
+public func until(_ times: Int, block: @escaping BasicBlock) -> BasicBlock {
     if times == 0 {
         return {}
     }
@@ -112,42 +112,42 @@ public func until(times: Int, block: BasicBlock) -> BasicBlock {
     }
 }
 
-public func once(block: BasicBlock) -> BasicBlock {
+public func once(_ block: @escaping BasicBlock) -> BasicBlock {
     return until(1, block: block)
 }
 
-public func inBackground(block: BasicBlock) {
+public func inBackground(_ block: @escaping BasicBlock) {
     if isTesting {
         block()
     }
     else {
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), block)
+        DispatchQueue.global().async(execute: block)
     }
 }
 
-public func inForeground(block: BasicBlock) {
+public func inForeground(_ block: @escaping BasicBlock) {
     nextTick(block)
 }
 
-public func nextTick(block: BasicBlock) {
+public func nextTick(_ block: @escaping BasicBlock) {
     if isTesting {
-        if NSThread.isMainThread() {
+        if Thread.isMainThread {
             block()
         }
         else {
-            dispatch_sync(dispatch_get_main_queue(), block)
+            DispatchQueue.main.sync(execute: block)
         }
     }
     else {
-        nextTick(on: dispatch_get_main_queue(), block: block)
+        nextTick(on: DispatchQueue.main, block: block)
     }
 }
 
-public func nextTick(on on: dispatch_queue_t, block: BasicBlock) {
-    dispatch_async(on, block)
+public func nextTick(on: DispatchQueue, block: @escaping BasicBlock) {
+    on.async(execute: block)
 }
 
-public func timeout(duration: NSTimeInterval, block: BasicBlock) -> BasicBlock {
+public func timeout(_ duration: TimeInterval, block: @escaping BasicBlock) -> BasicBlock {
     let handler = once(block)
     _ = delay(duration) {
         handler()
@@ -155,49 +155,49 @@ public func timeout(duration: NSTimeInterval, block: BasicBlock) -> BasicBlock {
     return handler
 }
 
-public func delay(duration: NSTimeInterval, background: Bool = false, block: BasicBlock) {
+public func delay(_ duration: TimeInterval, background: Bool = false, block: @escaping BasicBlock) {
     let killTimeOffset = Int64(CDouble(duration) * CDouble(NSEC_PER_SEC))
-    let killTime = dispatch_time(DISPATCH_TIME_NOW, killTimeOffset)
-    let queue = background ? dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0) : dispatch_get_main_queue()
-    dispatch_after(killTime, queue, block)
+    let killTime = DispatchTime.now() + Double(killTimeOffset) / Double(NSEC_PER_SEC)
+    let queue = background ? DispatchQueue.global() : DispatchQueue.main
+    queue.asyncAfter(deadline: killTime, execute: block)
 }
 
-public func cancelableDelay(duration: NSTimeInterval, block: BasicBlock) -> BasicBlock {
+public func cancelableDelay(_ duration: TimeInterval, block: @escaping BasicBlock) -> BasicBlock {
     let killTimeOffset = Int64(CDouble(duration) * CDouble(NSEC_PER_SEC))
-    let killTime = dispatch_time(DISPATCH_TIME_NOW, killTimeOffset)
+    let killTime = DispatchTime.now() + Double(killTimeOffset) / Double(NSEC_PER_SEC)
     var cancelled = false
-    dispatch_after(killTime, dispatch_get_main_queue()) {
+    DispatchQueue.main.asyncAfter(deadline: killTime) {
         if !cancelled { block() }
     }
     return { cancelled = true }
 }
 
-public func debounce(timeout: NSTimeInterval, block: BasicBlock) -> BasicBlock {
-    var timer: NSTimer? = nil
+public func debounce(_ timeout: TimeInterval, block: @escaping BasicBlock) -> BasicBlock {
+    var timer: Timer? = nil
     let proc = Proc(block)
 
     return {
         if let prevTimer = timer {
             prevTimer.invalidate()
         }
-        timer = NSTimer.scheduledTimerWithTimeInterval(timeout, target: proc, selector: #selector(Proc.run), userInfo: nil, repeats: false)
+        timer = Timer.scheduledTimer(timeInterval: timeout, target: proc, selector: #selector(Proc.run), userInfo: nil, repeats: false)
     }
 }
 
-public func debounce(timeout: NSTimeInterval) -> ThrottledBlock {
-    var timer: NSTimer? = nil
+public func debounce(_ timeout: TimeInterval) -> ThrottledBlock {
+    var timer: Timer? = nil
 
     return { block in
         if let prevTimer = timer {
             prevTimer.invalidate()
         }
         let proc = Proc(block)
-        timer = NSTimer.scheduledTimerWithTimeInterval(timeout, target: proc, selector: #selector(Proc.run), userInfo: nil, repeats: false)
+        timer = Timer.scheduledTimer(timeInterval: timeout, target: proc, selector: #selector(Proc.run), userInfo: nil, repeats: false)
     }
 }
 
-public func throttle(interval: NSTimeInterval, block: BasicBlock) -> BasicBlock {
-    var timer: NSTimer? = nil
+public func throttle(_ interval: TimeInterval, block: @escaping BasicBlock) -> BasicBlock {
+    var timer: Timer? = nil
     let proc = Proc() {
         timer = nil
         block()
@@ -205,13 +205,13 @@ public func throttle(interval: NSTimeInterval, block: BasicBlock) -> BasicBlock 
 
     return {
         if timer == nil {
-            timer = NSTimer.scheduledTimerWithTimeInterval(interval, target: proc, selector: #selector(Proc.run), userInfo: nil, repeats: false)
+            timer = Timer.scheduledTimer(timeInterval: interval, target: proc, selector: #selector(Proc.run), userInfo: nil, repeats: false)
         }
     }
 }
 
-public func throttle(interval: NSTimeInterval) -> ThrottledBlock {
-    var timer: NSTimer? = nil
+public func throttle(_ interval: TimeInterval) -> ThrottledBlock {
+    var timer: Timer? = nil
     var lastBlock: BasicBlock?
 
     return { block in
@@ -223,7 +223,7 @@ public func throttle(interval: NSTimeInterval) -> ThrottledBlock {
                 lastBlock?()
             }
 
-            timer = NSTimer.scheduledTimerWithTimeInterval(interval, target: proc, selector: #selector(Proc.run), userInfo: nil, repeats: false)
+            timer = Timer.scheduledTimer(timeInterval: interval, target: proc, selector: #selector(Proc.run), userInfo: nil, repeats: false)
         }
     }
 }

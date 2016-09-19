@@ -6,7 +6,7 @@ import UIKit
 import Foundation
 import CoreGraphics
 
-public class Keyboard {
+open class Keyboard {
     public struct Notifications {
         public static let KeyboardWillShow = TypedNotification<Keyboard>(name: "co.colinta.Keyboard.KeyboardWillShow")
         public static let KeyboardDidShow = TypedNotification<Keyboard>(name: "co.colinta.Keyboard.KeyboardDidShow")
@@ -14,36 +14,36 @@ public class Keyboard {
         public static let KeyboardDidHide = TypedNotification<Keyboard>(name: "co.colinta.Keyboard.KeyboardDidHide")
     }
 
-    public static let shared = Keyboard()
+    open static let shared = Keyboard()
 
-    public class func setup() {
+    open class func setup() {
         let _ = shared
     }
 
-    public var active = false
-    public var external = false
-    public var bottomInset: CGFloat = 0.0
-    public var endFrame: CGRect = .zero
-    public var curve = UIViewAnimationCurve.Linear
-    public var options = UIViewAnimationOptions.CurveLinear
-    public var duration: Double = 0.0
+    open var active = false
+    open var external = false
+    open var bottomInset: CGFloat = 0.0
+    open var endFrame: CGRect = .zero
+    open var curve = UIViewAnimationCurve.linear
+    open var options = UIViewAnimationOptions.curveLinear
+    open var duration: Double = 0.0
 
     public init() {
-        let center: NSNotificationCenter = NSNotificationCenter.defaultCenter()
-        center.addObserver(self, selector: #selector(Keyboard.willShow(_:)), name: UIKeyboardWillShowNotification, object: nil)
-        center.addObserver(self, selector: #selector(Keyboard.didShow(_:)), name: UIKeyboardDidShowNotification, object: nil)
-        center.addObserver(self, selector: #selector(Keyboard.willHide(_:)), name: UIKeyboardWillHideNotification, object: nil)
-        center.addObserver(self, selector: #selector(Keyboard.didHide(_:)), name: UIKeyboardDidHideNotification, object: nil)
+        let center: NotificationCenter = NotificationCenter.default
+        center.addObserver(self, selector: #selector(Keyboard.willShow(_:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        center.addObserver(self, selector: #selector(Keyboard.didShow(_:)), name: NSNotification.Name.UIKeyboardDidShow, object: nil)
+        center.addObserver(self, selector: #selector(Keyboard.willHide(_:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        center.addObserver(self, selector: #selector(Keyboard.didHide(_:)), name: NSNotification.Name.UIKeyboardDidHide, object: nil)
     }
 
     deinit {
-        let center: NSNotificationCenter = NSNotificationCenter.defaultCenter()
+        let center: NotificationCenter = NotificationCenter.default
         center.removeObserver(self)
     }
 
-    public func keyboardBottomInset(inView inView: UIView) -> CGFloat {
+    open func keyboardBottomInset(inView: UIView) -> CGFloat {
         let window: UIView = inView.window ?? inView
-        let bottom = window.convertPoint(CGPoint(x: 0, y: window.bounds.size.height - bottomInset), toView: inView.superview).y
+        let bottom = window.convert(CGPoint(x: 0, y: window.bounds.size.height - bottomInset), to: inView.superview).y
         let inset = inView.frame.size.height - bottom
         if inset < 0 {
             return 0
@@ -54,39 +54,39 @@ public class Keyboard {
     }
 
     @objc
-    func didShow(notification: NSNotification) {
+    func didShow(_ notification: Notification) {
         postNotification(Notifications.KeyboardDidShow, value: self)
     }
 
     @objc
-    func didHide(notification: NSNotification) {
+    func didHide(_ notification: Notification) {
         postNotification(Notifications.KeyboardDidHide, value: self)
     }
 
-    func setFromNotification(notification: NSNotification) {
-        if let durationValue = notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as? NSNumber {
+    func setFromNotification(_ notification: Notification) {
+        if let durationValue = (notification as NSNotification).userInfo?[UIKeyboardAnimationDurationUserInfoKey] as? NSNumber {
             duration = durationValue.doubleValue
         }
         else {
             duration = 0
         }
-        if let rawCurveValue = (notification.userInfo?[UIKeyboardAnimationCurveUserInfoKey] as? NSNumber) {
-            let rawCurve = rawCurveValue.integerValue
-            curve = UIViewAnimationCurve(rawValue: rawCurve) ?? .EaseOut
+        if let rawCurveValue = ((notification as NSNotification).userInfo?[UIKeyboardAnimationCurveUserInfoKey] as? NSNumber) {
+            let rawCurve = rawCurveValue.intValue
+            curve = UIViewAnimationCurve(rawValue: rawCurve) ?? .easeOut
             let curveInt = UInt(rawCurve << 16)
             options = UIViewAnimationOptions(rawValue: curveInt)
         }
         else {
-            curve = .EaseOut
-            options = .CurveEaseOut
+            curve = .easeOut
+            options = .curveEaseOut
         }
     }
 
     @objc
-    func willShow(notification: NSNotification) {
+    func willShow(_ notification: Notification) {
         active = true
         setFromNotification(notification)
-        endFrame = (notification.userInfo![UIKeyboardFrameEndUserInfoKey] as! NSValue).CGRectValue()
+        endFrame = ((notification as NSNotification).userInfo![UIKeyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
         let window = UIWindow.mainWindow
         bottomInset = window.frame.size.height - endFrame.origin.y
         external = endFrame.size.height > bottomInset
@@ -95,9 +95,9 @@ public class Keyboard {
     }
 
     @objc
-    func willHide(notification: NSNotification) {
+    func willHide(_ notification: Notification) {
         setFromNotification(notification)
-        endFrame = (notification.userInfo![UIKeyboardFrameEndUserInfoKey] as! NSValue).CGRectValue()
+        endFrame = ((notification as NSNotification).userInfo![UIKeyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
         bottomInset = 0
 
         let windowBottom = UIWindow.mainWindow.frame.size.height

@@ -46,7 +46,7 @@ class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        if let allPlayers = NSUserDefaults.standardUserDefaults().objectForKey("allPlayers") as? [String] {
+        if let allPlayers = UserDefaults.standard.object(forKey: "allPlayers") as? [String] {
             screen.allPlayers = allPlayers
             if allPlayers.count >= 2 {
                 screen.activePlayers = [Player(name: allPlayers[0]), Player(name: allPlayers[1])]
@@ -87,7 +87,7 @@ extension MainViewController {
     func okTapped() {
         guard currentPlayer < activePlayers.count else { return }
 
-        let total = mem.reduce(0, combine: +) + currentScore
+        let total = mem.reduce(0, +) + currentScore
         activePlayers[currentPlayer].append(total)
         currentPlayer = (currentPlayer + 1) % activePlayers.count
         screen.updateScores()
@@ -121,7 +121,7 @@ extension MainViewController {
         screen.showOverlay()
     }
 
-    func allPlayersUpdate(players: [String]) {
-        NSUserDefaults.standardUserDefaults().setObject(players, forKey: "allPlayers")
+    func allPlayersUpdate(_ players: [String]) {
+        UserDefaults.standard.set(players, forKey: "allPlayers")
     }
 }

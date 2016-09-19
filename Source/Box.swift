@@ -26,14 +26,14 @@ public protocol MutableBoxType: BoxType {
 /// Equality of `BoxType`s of `Equatable` types.
 ///
 /// We cannot declare that e.g. `Box<T: Equatable>` conforms to `Equatable`, so this is a relatively ad hoc definition.
-public func == <B: BoxType where B.Value: Equatable> (lhs: B, rhs: B) -> Bool {
+public func == <B: BoxType> (lhs: B, rhs: B) -> Bool where B.Value: Equatable {
     return lhs.value == rhs.value
 }
 
 /// Inequality of `BoxType`s of `Equatable` types.
 ///
 /// We cannot declare that e.g. `Box<T: Equatable>` conforms to `Equatable`, so this is a relatively ad hoc definition.
-public func != <B: BoxType where B.Value: Equatable> (lhs: B, rhs: B) -> Bool {
+public func != <B: BoxType> (lhs: B, rhs: B) -> Bool where B.Value: Equatable {
     return lhs.value != rhs.value
 }
 
@@ -41,7 +41,7 @@ public func != <B: BoxType where B.Value: Equatable> (lhs: B, rhs: B) -> Bool {
 // MARK: Map
 
 /// Maps the value of a box into a new box.
-public func map<B: BoxType, C: BoxType>(v: B, @noescape f: B.Value -> C.Value) -> C {
+public func map<B: BoxType, C: BoxType>(_ v: B, f: (B.Value) -> C.Value) -> C {
     return C(f(v.value))
 }
 
@@ -56,7 +56,7 @@ public final class Box<T>: BoxType, CustomStringConvertible {
 
 
     /// Constructs a `Box` with the given `value`.
-    public class func unit(value: T) -> Box<T> {
+    public class func unit(_ value: T) -> Box<T> {
         return Box(value)
     }
 
@@ -65,7 +65,7 @@ public final class Box<T>: BoxType, CustomStringConvertible {
     public let value: T
 
     /// Constructs a new Box by transforming `value` by `f`.
-    public func map<U>(@noescape f: T -> U) -> Box<U> {
+    public func map<U>(_ f: (T) -> U) -> Box<U> {
         return Box<U>(f(value))
     }
 
@@ -73,6 +73,6 @@ public final class Box<T>: BoxType, CustomStringConvertible {
     // MARK: Printable
 
     public var description: String {
-        return String(value)
+        return String(describing: value)
     }
 }

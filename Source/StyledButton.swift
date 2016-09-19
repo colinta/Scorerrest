@@ -43,7 +43,7 @@ final class StyledButton: UIButton {
             fontSize: CGFloat = 20,
             cornerRadius: CGFloat? = 5,
             size: Size = .medium,
-            corners: UIRectCorner = [.TopLeft, .TopRight, .BottomLeft, .BottomRight]
+            corners: UIRectCorner = [.topLeft, .topRight, .bottomLeft, .bottomRight]
         ) {
             self.highlightedBackgroundColor = highlightedBackgroundColor
             self.backgroundColor = backgroundColor
@@ -62,18 +62,18 @@ final class StyledButton: UIButton {
         didSet { updateStyle() }
     }
 
-    private var internalBackgroundColor: UIColor? {
+    fileprivate var internalBackgroundColor: UIColor? {
         didSet {
             if oldValue != internalBackgroundColor { setNeedsDisplay() }
         }
     }
 
-    override var highlighted: Bool {
+    override var isHighlighted: Bool {
         didSet { updateStyle() }
     }
 
-    private func updateStyle() {
-        if highlighted {
+    fileprivate func updateStyle() {
+        if isHighlighted {
             internalBackgroundColor = style.highlightedBackgroundColor ?? style.backgroundColor
         }
         else {
@@ -81,8 +81,8 @@ final class StyledButton: UIButton {
         }
 
         titleLabel?.font = style.font
-        setTitleColor(style.highlightedTitleColor, forState: .Highlighted)
-        setTitleColor(style.titleColor, forState: .Normal)
+        setTitleColor(style.highlightedTitleColor, for: .highlighted)
+        setTitleColor(style.titleColor, for: .normal)
     }
 
     required override init(frame: CGRect) {
@@ -98,20 +98,20 @@ final class StyledButton: UIButton {
     convenience init(_ style: Style, text: String = "") {
         self.init()
         self.style = style
-        self.setTitle(text, forState: .Normal)
+        self.setTitle(text, for: .normal)
         updateStyle()
     }
 
-    override func intrinsicContentSize() -> CGSize {
+    override var intrinsicContentSize: CGSize {
         return style.cgsize
     }
 
-    private func sharedSetup() {
+    fileprivate func sharedSetup() {
         titleLabel?.numberOfLines = 1
         updateStyle()
     }
 
-    override func drawRect(frame: CGRect) {
+    override func draw(_ frame: CGRect) {
         guard let internalBackgroundColor = internalBackgroundColor else { return }
 
         let pathRadius: CGFloat
@@ -141,45 +141,45 @@ final class StyledButton: UIButton {
 
 extension StyledButton.Style {
     static let Default = StyledButton.Style(
-        backgroundColor: .blackColor(), highlightedBackgroundColor: .darkGrayColor(),
-        titleColor: .whiteColor()
+        backgroundColor: .black, highlightedBackgroundColor: .darkGray,
+        titleColor: .white
         )
     static let gray = StyledButton.Style(
         backgroundColor: UIColor(hex: 0x8E8B8F), highlightedBackgroundColor: UIColor(hex: 0xA6A6A6),
-        titleColor: .whiteColor()
+        titleColor: .white
         )
     static let green = StyledButton.Style(
         backgroundColor: UIColor(hex: 0x70B304), highlightedBackgroundColor: UIColor(hex: 0x7EE10A),
-        titleColor: .whiteColor()
+        titleColor: .white
     )
 
     static let red = StyledButton.Style(
         backgroundColor: UIColor(hex: 0xC82A04), highlightedBackgroundColor: UIColor(hex: 0xFC1D0A),
-        titleColor: .whiteColor()
+        titleColor: .white
         )
     static let minusOne = StyledButton.Style(
         backgroundColor: UIColor(hex: 0xC82A04), highlightedBackgroundColor: UIColor(hex: 0xFC1D0A),
-        titleColor: .whiteColor(),
-        size: .large, corners: [.TopLeft, .BottomLeft]
+        titleColor: .white,
+        size: .large, corners: [.topLeft, .bottomLeft]
         )
     static let blue = StyledButton.Style(
         backgroundColor: UIColor(hex: 0x2895F3), highlightedBackgroundColor: UIColor(hex: 0x4AA0FF),
-        titleColor: .whiteColor()
+        titleColor: .white
     )
     static let plusOne = StyledButton.Style(
         backgroundColor: UIColor(hex: 0x2895F3), highlightedBackgroundColor: UIColor(hex: 0x4AA0FF),
-        titleColor: .whiteColor(),
-        size: .large, corners: [.TopRight, .BottomRight]
+        titleColor: .white,
+        size: .large, corners: [.topRight, .bottomRight]
         )
 
     static let minusFive = StyledButton.Style(
         backgroundColor: UIColor(hex: 0xA12403), highlightedBackgroundColor: UIColor(hex: 0xBF1B08),
-        titleColor: .whiteColor(),
+        titleColor: .white,
         size: .wide
         )
     static let plusFive = StyledButton.Style(
         backgroundColor: UIColor(hex: 0x227ECA), highlightedBackgroundColor: UIColor(hex: 0x2382EE),
-        titleColor: .whiteColor(),
+        titleColor: .white,
         size: .wide
         )
 }
