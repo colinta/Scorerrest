@@ -14,6 +14,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+        application.statusBarStyle = .LightContent
+
         let window = UIWindow(frame: UIScreen.mainScreen().bounds)
         self.window = window
 
@@ -21,8 +23,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         let ctlr = MainViewController()
         window.rootViewController = ctlr
-
-        UIApplication.sharedApplication().statusBarStyle = .LightContent
 
         return true
     }
@@ -34,4 +34,3 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
 }
-

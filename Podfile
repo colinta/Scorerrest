@@ -6,5 +6,5 @@ target 'Scorerrest' do
   use_frameworks!
 
   # Pods for Mainframe
-  pod 'SnapKit'
+  pod 'SnapKit', '~> 3.0.0'
 end
