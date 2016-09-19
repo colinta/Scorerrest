@@ -4,12 +4,24 @@
 
 import SnapKit
 
-class HighlightedNameView: UIView {}
-class ButtonContainer: UIView {}
-class ButtonContainerWidthAnchor: UIView {}
-class MemViewSizeAnchor: UIView {}
 
 class MainScreen: Screen {
+    enum Priority: ConstraintPriorityTarget {
+        case Low
+        case Medium
+        case High
+        case Required
+
+        var constraintPriorityTargetValue: Float {
+            switch self {
+            case .Low: return UILayoutPriorityDefaultLow
+            case .Medium: return (UILayoutPriorityDefaultHigh + UILayoutPriorityDefaultLow) / 2
+            case .High: return UILayoutPriorityDefaultHigh
+            case .Required: return UILayoutPriorityRequired
+            }
+        }
+
+    }
     struct Size {
         static let margin: CGFloat = 5
         static let buttonContainerMaxWidth: CGFloat = 400
@@ -46,54 +58,55 @@ class MainScreen: Screen {
     }
     weak var delegate: MainViewController?
 
-    private let namesView = UIScrollView()
-    private var scoreViews: [UILabel] = []
-    private var playerButtons: [UIButton] = []
+    fileprivate let namesView = UIScrollView()
+    fileprivate var scoreViews: [UILabel] = []
+    fileprivate var playerButtons: [UIButton] = []
 
-    private let highlightedNameView = HighlightedNameView()
-    private var highlightedLeading: Constraint?
-    private let addPlayerButton = UIButton()
-    private var addPlayerLeading: Constraint?
+    fileprivate let highlightedNameView = UIView()
+    fileprivate var highlightedLeading: Constraint?
+    fileprivate let addPlayerButton = UIButton()
+    fileprivate var addPlayerLeading: Constraint?
 
-    private let scoreboardView = UIScrollView()
-    private var scoreboardTrailing: Constraint?
-    private let buttonContainer = ButtonContainer()
-    private var buttonContainerWidth: Constraint?
+    fileprivate let scoreboardView = UIScrollView()
+    fileprivate var scoreboardTrailing: Constraint?
+    fileprivate let buttonContainer = UIView()
+    fileprivate var buttonContainerWidth: Constraint?
 
-    private let currentScoreView = DigitalView()
-    private let clearButton = StyledButton(.gray, text: "C")
-    private let keypadButton = StyledButton(.gray, text: "123")
-    private let signButton = StyledButton(.red, text: "+/–")
-    private let okButton = StyledButton(.green, text: "OK")
-    private let memButton = StyledButton(.green, text: "M+")
-    private let minusFiveButton = StyledButton(.minusFive, text: "–5")
-    private let minusOneButton = StyledButton(.minusOne, text: "–")
-    private let plusOneButton = StyledButton(.plusOne, text: "+")
-    private let plusFiveButton = StyledButton(.plusFive, text: "+5")
-    private let memFeed = UILabel()
-    private let memView = UIScrollView()
-    private var memViewSize: Constraint?
+    fileprivate let currentScoreView = DigitalView()
+    fileprivate let clearButton = StyledButton(.gray, text: "C")
+    fileprivate let keypadButton = StyledButton(.gray, text: "123")
+    fileprivate let signButton = StyledButton(.red, text: "+/–")
+    fileprivate let okButton = StyledButton(.green, text: "OK")
+    fileprivate let memButton = StyledButton(.green, text: "M+")
+    fileprivate let minusFiveButton = StyledButton(.minusFive, text: "–5")
+    fileprivate let minusOneButton = StyledButton(.minusOne, text: "–")
+    fileprivate let plusOneButton = StyledButton(.plusOne, text: "+")
+    fileprivate let plusFiveButton = StyledButton(.plusFive, text: "+5")
+    fileprivate let memFeed = UILabel()
+    fileprivate let memView = UIScrollView()
+    fileprivate var memViewWidth: Constraint?
+    fileprivate var memViewHeight: Constraint?
 
-    private let overlay = UIView()
-    private let overlayBg = UIView()
-    private let playerTable = UITableView()
+    fileprivate let overlay = UIView()
+    fileprivate let overlayBg = UIView()
+    fileprivate let playerTable = UITableView()
 
     override func style() {
         let scoreboardColor = UIColor(patternImage: UIImage(named: "notepad")!)
         scoreboardView.backgroundColor = scoreboardColor
-        addPlayerButton.setTitle("+", forState: .Normal)
-        addPlayerButton.setTitleColor(.whiteColor(), forState: .Normal)
+        addPlayerButton.setTitle("+", for: .normal)
+        addPlayerButton.setTitleColor(.white, for: .normal)
         addPlayerButton.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 20)
         addPlayerButton.backgroundColor = UIColor(hex: 0x70B304)
         addPlayerButton.titleEdgeInsets.bottom = 4
         addPlayerButton.layer.cornerRadius = 5
-        highlightedNameView.backgroundColor = .yellowColor()
-        highlightedNameView.hidden = true
+        highlightedNameView.backgroundColor = .yellow
+        highlightedNameView.isHidden = true
         minusFiveButton.titleEdgeInsets.right = Size.buttonOverlap
         plusFiveButton.titleEdgeInsets.right = Size.buttonOverlap
-        signButton.hidden = true
+        signButton.isHidden = true
         memFeed.font = UIFont(name: "HelveticaNeue-Light", size: 14)
-        memFeed.textAlignment = .Right
+        memFeed.textAlignment = .right
         memView.showsVerticalScrollIndicator = false
         memView.showsHorizontalScrollIndicator = false
         namesView.showsVerticalScrollIndicator = false
@@ -102,23 +115,23 @@ class MainScreen: Screen {
         let overlayColor = UIColor(patternImage: UIImage(named: "overlay")!)
         overlayBg.backgroundColor = overlayColor
         overlayBg.alpha = 0.8
-        overlay.hidden = true
+        overlay.isHidden = true
         overlay.alpha = 0
 
-        playerTable.registerClass(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        playerTable.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     }
 
     override func bindActions() {
-        clearButton.addTarget(self, action: #selector(clearTapped), forControlEvents: .TouchUpInside)
-        keypadButton.addTarget(self, action: #selector(keypadTapped), forControlEvents: .TouchUpInside)
-        signButton.addTarget(self, action: #selector(signTapped), forControlEvents: .TouchUpInside)
-        okButton.addTarget(self, action: #selector(okTapped), forControlEvents: .TouchUpInside)
-        memButton.addTarget(self, action: #selector(memTapped), forControlEvents: .TouchUpInside)
-        minusFiveButton.addTarget(self, action: #selector(minusFiveTapped), forControlEvents: .TouchUpInside)
-        minusOneButton.addTarget(self, action: #selector(minusOneTapped), forControlEvents: .TouchUpInside)
-        plusOneButton.addTarget(self, action: #selector(plusOneTapped), forControlEvents: .TouchUpInside)
-        plusFiveButton.addTarget(self, action: #selector(plusFiveTapped), forControlEvents: .TouchUpInside)
-        addPlayerButton.addTarget(self, action: #selector(addPlayerTapped), forControlEvents: .TouchUpInside)
+        clearButton.addTarget(self, action: #selector(clearTapped), for: .touchUpInside)
+        keypadButton.addTarget(self, action: #selector(keypadTapped), for: .touchUpInside)
+        signButton.addTarget(self, action: #selector(signTapped), for: .touchUpInside)
+        okButton.addTarget(self, action: #selector(okTapped), for: .touchUpInside)
+        memButton.addTarget(self, action: #selector(memTapped), for: .touchUpInside)
+        minusFiveButton.addTarget(self, action: #selector(minusFiveTapped), for: .touchUpInside)
+        minusOneButton.addTarget(self, action: #selector(minusOneTapped), for: .touchUpInside)
+        plusOneButton.addTarget(self, action: #selector(plusOneTapped), for: .touchUpInside)
+        plusFiveButton.addTarget(self, action: #selector(plusFiveTapped), for: .touchUpInside)
+        addPlayerButton.addTarget(self, action: #selector(addPlayerTapped), for: .touchUpInside)
         scoreboardView.delegate = self
         namesView.delegate = self
         playerTable.dataSource = self
@@ -155,120 +168,122 @@ class MainScreen: Screen {
         overlay.addSubview(overlayBg)
         overlay.addSubview(playerTable)
 
-        namesView.snp_makeConstraints { make in
+        namesView.snp.makeConstraints { make in
             make.top.equalTo(self).offset(20)
             make.leading.trailing.equalTo(self)
             make.height.equalTo(Size.highlightedSize.height)
         }
-        highlightedNameView.snp_makeConstraints { make in
+        highlightedNameView.snp.makeConstraints { make in
             make.top.bottom.equalTo(namesView)
             make.size.equalTo(Size.highlightedSize)
         }
-        addPlayerButton.snp_makeConstraints { make in
+        addPlayerButton.snp.makeConstraints { make in
             make.width.top.bottom.equalTo(highlightedNameView)
             addPlayerLeading = make.leading.equalTo(namesView).constraint
             make.trailing.equalTo(namesView)
         }
-        scoreboardView.snp_makeConstraints { make in
-            make.top.equalTo(namesView.snp_bottom)
+        scoreboardView.snp.makeConstraints { make in
+            make.top.equalTo(namesView.snp.bottom)
             make.leading.trailing.equalTo(self)
-            make.bottom.equalTo(buttonContainer.snp_top)
+            make.bottom.equalTo(buttonContainer.snp.top)
             // make.bottom.equalTo(self)
         }
 
-        buttonContainer.snp_makeConstraints { make in
-            make.width.equalTo(self).priorityMedium()
-            make.width.lessThanOrEqualTo(Size.buttonContainerMaxWidth).priorityHigh()
-            // make.bottom.centerX.equalTo(keyboardAnchor.snp_top)
+        buttonContainer.snp.makeConstraints { make in
+            make.width.equalTo(self).priority(Priority.Medium)
+            make.width.lessThanOrEqualTo(Size.buttonContainerMaxWidth).priority(Priority.High)
+            // make.bottom.centerX.equalTo(keyboardAnchor.snp.top)
             make.bottom.centerX.equalTo(self)
-            make.top.lessThanOrEqualTo(currentScoreView.snp_top)
-            make.top.lessThanOrEqualTo(memButton.snp_top)
-            make.top.lessThanOrEqualTo(clearButton.snp_top)
+            make.top.lessThanOrEqualTo(currentScoreView.snp.top)
+            make.top.lessThanOrEqualTo(memButton.snp.top)
+            make.top.lessThanOrEqualTo(clearButton.snp.top)
         }
-        let buttonContainerWidthAnchor = ButtonContainerWidthAnchor()
+        let buttonContainerWidthAnchor = UIView()
         buttonContainer.addSubview(buttonContainerWidthAnchor)
-        buttonContainerWidthAnchor.snp_makeConstraints { make in
-            buttonContainerWidth = make.width.equalTo(frame.size.width).priorityRequired().constraint
+        buttonContainerWidthAnchor.snp.makeConstraints { make in
+            buttonContainerWidth = make.width.equalTo(frame.size.width).priority(Priority.Required).constraint
             make.leading.trailing.equalTo(buttonContainer)
         }
 
-        currentScoreView.snp_makeConstraints { make in
+        currentScoreView.snp.makeConstraints { make in
             make.top.equalTo(buttonContainer).offset(Size.margin)
-            make.width.lessThanOrEqualTo(Size.currentScoreMaxWidth).priorityHigh()
+            make.width.lessThanOrEqualTo(Size.currentScoreMaxWidth).priority(Priority.High)
             make.centerX.equalTo(buttonContainer)
-            make.bottom.equalTo(memView.snp_top).offset(-Size.margin)
+            make.bottom.equalTo(memView.snp.top).offset(-Size.margin)
         }
-        keypadButton.snp_makeConstraints { make in
+        keypadButton.snp.makeConstraints { make in
             make.leading.equalTo(buttonContainer).offset(Size.margin)
             make.bottom.equalTo(buttonContainer).offset(-Size.bottomMargin)
         }
-        clearButton.snp_makeConstraints { make in
+        clearButton.snp.makeConstraints { make in
             make.leading.equalTo(buttonContainer).offset(Size.margin)
-            make.bottom.equalTo(keypadButton.snp_top).offset(-Size.margin)
+            make.bottom.equalTo(keypadButton.snp.top).offset(-Size.margin)
         }
-        signButton.snp_makeConstraints { make in
+        signButton.snp.makeConstraints { make in
             make.leading.equalTo(buttonContainer).offset(Size.margin)
             make.bottom.equalTo(buttonContainer).offset(-Size.bottomMargin)
         }
-        okButton.snp_makeConstraints { make in
+        okButton.snp.makeConstraints { make in
             make.trailing.equalTo(buttonContainer).offset(-Size.margin)
             make.bottom.equalTo(buttonContainer).offset(-Size.bottomMargin)
         }
-        memButton.snp_makeConstraints { make in
+        memButton.snp.makeConstraints { make in
             make.trailing.equalTo(buttonContainer).offset(-Size.margin)
-            make.bottom.equalTo(okButton.snp_top).offset(-Size.bottomMargin)
+            make.bottom.equalTo(okButton.snp.top).offset(-Size.bottomMargin)
         }
 
-        minusFiveButton.snp_makeConstraints { make in
+        minusFiveButton.snp.makeConstraints { make in
             make.centerY.equalTo(okButton)
-            make.trailing.equalTo(minusOneButton.snp_leading).offset(Size.buttonOverlap)
+            make.trailing.equalTo(minusOneButton.snp.leading).offset(Size.buttonOverlap)
         }
-        minusOneButton.snp_makeConstraints { make in
+        minusOneButton.snp.makeConstraints { make in
             make.centerY.equalTo(okButton)
-            make.trailing.equalTo(buttonContainer.snp_centerX)
+            make.trailing.equalTo(buttonContainer.snp.centerX)
         }
-        plusOneButton.snp_makeConstraints { make in
+        plusOneButton.snp.makeConstraints { make in
             make.centerY.equalTo(okButton)
-            make.leading.equalTo(buttonContainer.snp_centerX)
+            make.leading.equalTo(buttonContainer.snp.centerX)
         }
-        plusFiveButton.snp_makeConstraints { make in
+        plusFiveButton.snp.makeConstraints { make in
             make.centerY.equalTo(okButton)
-            make.leading.equalTo(plusOneButton.snp_trailing).offset(-Size.buttonOverlap)
+            make.leading.equalTo(plusOneButton.snp.trailing).offset(-Size.buttonOverlap)
         }
-        let memViewSizeAnchor = MemViewSizeAnchor()
+        let memViewSizeAnchor = UIView()
         memView.addSubview(memViewSizeAnchor)
-        memViewSizeAnchor.snp_makeConstraints { make in
-            memViewSize = make.size.equalTo(memView.frame.size).priorityRequired().constraint
+        memViewSizeAnchor.snp.makeConstraints { make in
+            memViewWidth = make.width.equalTo(memView.frame.width).priority(Priority.Required).constraint
+            memViewHeight = make.width.equalTo(memView.frame.height).priority(Priority.Required).constraint
             make.top.bottom.trailing.equalTo(memView)
             make.leading.greaterThanOrEqualTo(memView)
         }
-        memView.snp_makeConstraints { make in
-            make.leading.equalTo(clearButton.snp_trailing).offset(Size.margin)
-            make.trailing.equalTo(memButton.snp_leading).offset(-Size.margin)
+        memView.snp.makeConstraints { make in
+            make.leading.equalTo(clearButton.snp.trailing).offset(Size.margin)
+            make.trailing.equalTo(memButton.snp.leading).offset(-Size.margin)
             make.centerY.height.equalTo(clearButton)
         }
-        memFeed.snp_makeConstraints { make in
-            make.edges.equalTo(memView).inset(Size.margin).priorityHigh()
+        memFeed.snp.makeConstraints { make in
+            make.edges.equalTo(memView).inset(Size.margin).priority(Priority.High)
         }
-        memFeed.setContentHuggingPriority(UILayoutPriorityDefaultLow, forAxis: .Horizontal)
-        memFeed.setContentHuggingPriority(UILayoutPriorityDefaultLow, forAxis: .Vertical)
+        memFeed.setContentHuggingPriority(UILayoutPriorityDefaultLow, for: .horizontal)
+        memFeed.setContentHuggingPriority(UILayoutPriorityDefaultLow, for: .vertical)
 
-        overlay.snp_makeConstraints { make in
+        overlay.snp.makeConstraints { make in
             make.edges.equalTo(self)
         }
-        overlayBg.snp_makeConstraints { make in
+        overlayBg.snp.makeConstraints { make in
             make.edges.equalTo(overlay)
         }
-        playerTable.snp_makeConstraints { make in
+        playerTable.snp.makeConstraints { make in
             make.top.leading.trailing.equalTo(overlay).inset(Size.tableMargins)
-            make.bottom.equalTo(overlay).offset(-Size.tableMargins.bottom).priorityMedium()
-            make.bottom.equalTo(keyboardAnchor.snp_top).offset(-Size.tableMargins.bottom).priorityRequired()
+            make.bottom.equalTo(overlay).offset(-Size.tableMargins.bottom).priority(Priority.Medium)
+            make.bottom.equalTo(keyboardAnchor.snp.top).offset(-Size.tableMargins.bottom).priority(Priority.Required)
         }
     }
 
     override func layoutSubviews() {
-        buttonContainerWidth?.updateOffset(frame.width)
-        memViewSize?.updateOffset(memView.frame.size)
+        buttonContainerWidth?.update(offset: frame.width)
+        memViewWidth?.update(offset: memView.frame.width)
+        memViewHeight?.update(offset: memView.frame.height)
         super.layoutSubviews()
     }
 }
@@ -277,16 +292,16 @@ extension MainScreen {
     func updateScores() {
         let normal: [String: AnyObject] = [
             NSFontAttributeName: UIFont(name: "HelveticaNeue-Light", size: 14)!,
-            NSForegroundColorAttributeName: UIColor.blackColor(),
+            NSForegroundColorAttributeName: UIColor.black,
         ]
         let underlined: [String: AnyObject] = [
             NSFontAttributeName: UIFont(name: "HelveticaNeue-Light", size: 14)!,
-            NSForegroundColorAttributeName: UIColor.blackColor(),
-            NSUnderlineStyleAttributeName: NSUnderlineStyle.StyleSingle.rawValue,
+            NSForegroundColorAttributeName: UIColor.black,
+            NSUnderlineStyleAttributeName: NSUnderlineStyle.styleSingle as AnyObject,
         ]
-        for (index, player) in activePlayers.enumerate() {
+        for (index, player) in activePlayers.enumerated() {
             let playerView = playerButtons[index]
-            playerView.setTitle(player.name + "\n\(player.score)", forState: .Normal)
+            playerView.setTitle(player.name + "\n\(player.score)", for: .normal)
             let scoreboardLabel = scoreViews[index]
 
             let scoreText = NSMutableAttributedString()
@@ -295,12 +310,12 @@ extension MainScreen {
             for score in player.scores {
                 total += score
                 if first {
-                    scoreText.appendAttributedString(NSAttributedString(string: "\(score)\n", attributes: normal))
+                    scoreText.append(NSAttributedString(string: "\(score)\n", attributes: normal))
                 }
                 else {
                     let scoreString: String = (score >= 0 ? "+ \(score)" : "- \(-score)")
-                    scoreText.appendAttributedString(NSAttributedString(string: scoreString, attributes: underlined))
-                    scoreText.appendAttributedString(NSAttributedString(string: "\n\(total)\n", attributes: normal))
+                    scoreText.append(NSAttributedString(string: scoreString, attributes: underlined))
+                    scoreText.append(NSAttributedString(string: "\n\(total)\n", attributes: normal))
                 }
 
                 first = false
@@ -315,7 +330,7 @@ extension MainScreen {
 }
 
 extension MainScreen: UIScrollViewDelegate {
-    func scrollViewDidScroll(scrollView: UIScrollView) {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView == namesView {
             scoreboardView.contentOffset.x = namesView.contentOffset.x
         }
@@ -326,7 +341,7 @@ extension MainScreen: UIScrollViewDelegate {
 }
 
 extension MainScreen {
-    private func updateNameViews() {
+    fileprivate func updateNameViews() {
         for view in playerButtons {
             view.removeFromSuperview()
         }
@@ -340,25 +355,25 @@ extension MainScreen {
         scoreViews = []
         for player in activePlayers {
             let box = UIButton()
-            box.setTitle(player.name + "\n\(player.score)", forState: .Normal)
-            box.setTitleColor(.blackColor(), forState: .Normal)
+            box.setTitle(player.name + "\n\(player.score)", for: .normal)
+            box.setTitleColor(.black, for: .normal)
             box.titleLabel!.numberOfLines = 2
             box.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 20)
-            box.titleLabel!.textAlignment = .Center
+            box.titleLabel!.textAlignment = .center
             box.titleLabel!.adjustsFontSizeToFitWidth = true
-            box.titleLabel!.setContentHuggingPriority(UILayoutPriorityDefaultLow, forAxis: .Horizontal)
-            box.titleLabel!.setContentHuggingPriority(UILayoutPriorityDefaultLow, forAxis: .Vertical)
+            box.titleLabel!.setContentHuggingPriority(UILayoutPriorityDefaultLow, for: .horizontal)
+            box.titleLabel!.setContentHuggingPriority(UILayoutPriorityDefaultLow, for: .vertical)
 
             playerButtons.append(box)
             namesView.addSubview(box)
-            box.addTarget(self, action: #selector(playerTapped(_:)), forControlEvents: .TouchUpInside)
+            box.addTarget(self, action: #selector(playerTapped(_:)), for: .touchUpInside)
 
-            box.snp_makeConstraints { make in
+            box.snp.makeConstraints { make in
                 make.top.equalTo(namesView)
                 make.size.equalTo(highlightedNameView)
 
                 if let prevView = prevView {
-                    make.leading.equalTo(prevView.snp_trailing)
+                    make.leading.equalTo(prevView.snp.trailing)
                 }
                 else {
                     make.leading.equalTo(namesView)
@@ -368,17 +383,17 @@ extension MainScreen {
             prevView = box
 
             let score = UILabel()
-            score.textAlignment = .Right
+            score.textAlignment = .right
             score.font = UIFont(name: "HelveticaNeue-Light", size: 14)
             score.numberOfLines = 0
             scoreViews.append(score)
             scoreboardView.addSubview(score)
 
-            score.snp_makeConstraints { make in
+            score.snp.makeConstraints { make in
                 make.top.equalTo(scoreboardView)
                 make.bottom.lessThanOrEqualTo(scoreboardView)
                 if let prevScore = prevScore {
-                    make.leading.equalTo(prevScore.snp_trailing).offset(Size.margin)
+                    make.leading.equalTo(prevScore.snp.trailing).offset(Size.margin)
                 }
                 else {
                     make.leading.equalTo(scoreboardView).offset(Size.margin)
@@ -389,31 +404,31 @@ extension MainScreen {
             prevScore = score
         }
 
-        addPlayerLeading?.uninstall()
-        addPlayerButton.snp_makeConstraints { make in
+        addPlayerLeading?.deactivate()
+        addPlayerButton.snp.makeConstraints { make in
             if let prevView = prevView {
-                addPlayerLeading = make.leading.equalTo(prevView.snp_trailing).constraint
+                addPlayerLeading = make.leading.equalTo(prevView.snp.trailing).constraint
             }
             else {
                 addPlayerLeading = make.leading.equalTo(namesView).constraint
             }
         }
 
-        scoreboardTrailing?.uninstall()
+        scoreboardTrailing?.deactivate()
         if let prevScore = prevScore {
-            scoreboardView.snp_makeConstraints { make in
-                scoreboardTrailing = make.trailing.equalTo(prevScore.snp_trailing).constraint
+            scoreboardView.snp.makeConstraints { make in
+                scoreboardTrailing = make.trailing.equalTo(prevScore.snp.trailing).constraint
             }
         }
 
         updateScores()
     }
 
-    private func updateHighlight() {
-        highlightedNameView.hidden = activePlayers.count == 0
+    fileprivate func updateHighlight() {
+        highlightedNameView.isHidden = activePlayers.count == 0
 
-        highlightedLeading?.uninstall()
-        highlightedNameView.snp_makeConstraints { make in
+        highlightedLeading?.deactivate()
+        highlightedNameView.snp.makeConstraints { make in
             if currentPlayer < playerButtons.count {
                 highlightedLeading = make.leading.equalTo(playerButtons[currentPlayer]).constraint
             }
@@ -440,8 +455,8 @@ extension MainScreen {
         delegate?.signTapped()
     }
 
-    func playerTapped(sender: UIButton) {
-        if let index = playerButtons.indexOf(sender) {
+    func playerTapped(_ sender: UIButton) {
+        if let index = playerButtons.index(of: sender) {
             currentPlayer = index
         }
     }
@@ -477,16 +492,16 @@ extension MainScreen {
 
 extension MainScreen {
     func showOverlay() {
-        savedPlayers = activePlayers.enumerate().map { ($0 + 1, $1.name) }
+        savedPlayers = activePlayers.enumerated().map { ($0 + 1, $1.name) }
         playerTable.reloadData()
-        overlay.hidden = false
-        UIView.animateWithDuration(0.3) {
+        overlay.isHidden = false
+        UIView.animate(withDuration: 0.3) {
             self.overlay.alpha = 1
         }
     }
 
     func hideOverlay() {
-        activePlayers = savedPlayers.sort({ $0.0 < $1.0 }).map { _, name in
+        activePlayers = savedPlayers.sorted(by: { $0.0 < $1.0 }).map { _, name in
             for player in activePlayers {
                 if player.name == name {
                     return player
@@ -495,31 +510,31 @@ extension MainScreen {
             return Player(name: name)
         }
 
-        UIView.animateWithDuration(0.3, animations: {
+        UIView.animate(withDuration: 0.3, animations: {
             self.overlay.alpha = 0
         }, completion: { _ in
-            self.overlay.hidden = true
+            self.overlay.isHidden = true
         })
     }
 }
 
 extension MainScreen: UITableViewDataSource {
-    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
 
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return allPlayers.count + 1
     }
 
-    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         return indexPath.row < allPlayers.count
     }
 
-    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == .Delete {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
             var newPlayers: [String] = []
-            for (index, name) in allPlayers.enumerate() {
+            for (index, name) in allPlayers.enumerated() {
                 if index == indexPath.row {
                     savedPlayers = savedPlayers.filter { $0.1 != name }
                 }
@@ -532,15 +547,15 @@ extension MainScreen: UITableViewDataSource {
         }
     }
 
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("cell", forIndexPath: indexPath)
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         cell.textLabel?.font = UIFont(name: "HelveticaNeue-Light", size: 14)
         if indexPath.row == allPlayers.count {
-            cell.textLabel?.textColor = .grayColor()
+            cell.textLabel?.textColor = .gray
             cell.textLabel?.text = "New Player"
         }
         else {
-            cell.textLabel?.textColor = .blackColor()
+            cell.textLabel?.textColor = .black
             let name = allPlayers[indexPath.row]
             var text = name
             for (index, player) in savedPlayers {
@@ -556,22 +571,22 @@ extension MainScreen: UITableViewDataSource {
 }
 
 extension MainScreen: UITableViewDelegate {
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let cell = tableView.cellForRowAtIndexPath(indexPath)
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let cell = tableView.cellForRow(at: indexPath)
         if indexPath.row == allPlayers.count {
             let alert = UIAlertView(title: "New Player", message: "",
                 delegate: self, cancelButtonTitle: "Cancel", otherButtonTitles: "OK")
-            alert.alertViewStyle = .PlainTextInput
+            alert.alertViewStyle = .plainTextInput
             alert.show()
 
         }
         else {
             let name = allPlayers[indexPath.row]
-            cell?.selected = false
+            cell?.isSelected = false
             var found = false
             var players: [(Int, String)] = []
             var newIndex = 1
-            for (_, player) in savedPlayers.sort({ $0.0 < $1.0 }) {
+            for (_, player) in savedPlayers.sorted(by: { $0.0 < $1.0 }) {
                 if player == name {
                     found = true
                 }
@@ -597,9 +612,9 @@ extension MainScreen: UITableViewDelegate {
 
 extension MainScreen: UIAlertViewDelegate {
 
-    func alertView(alertView: UIAlertView, clickedButtonAtIndex buttonIndex: Int) {
-        if buttonIndex == 1, let name = alertView.textFieldAtIndex(0)?.text
-        where !name.characters.isEmpty && !allPlayers.contains(name)
+    func alertView(_ alertView: UIAlertView, clickedButtonAt buttonIndex: Int) {
+        if buttonIndex == 1, let name = alertView.textField(at: 0)?.text
+        , !name.characters.isEmpty && !allPlayers.contains(name)
         {
             allPlayers.append(name)
             playerTable.reloadData()

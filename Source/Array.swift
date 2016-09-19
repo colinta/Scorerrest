@@ -3,20 +3,20 @@
 //
 
 
-extension SequenceType {
+extension Sequence {
 
-    func any(@noescape test: (el: Generator.Element) -> Bool) -> Bool {
+    func any(_ test: (_ el: Iterator.Element) -> Bool) -> Bool {
         for ob in self {
-            if test(el: ob) {
+            if test(ob) {
                 return true
             }
         }
         return false
     }
 
-    func all(test: (el: Generator.Element) -> Bool) -> Bool {
+    func all(_ test: (_ el: Iterator.Element) -> Bool) -> Bool {
         for ob in self {
-            if !test(el: ob) {
+            if !test(ob) {
                 return false
             }
         }

@@ -42,7 +42,7 @@ class DigitalView: UIView {
     var colon: UIImage!
     var background: UIImage!
 
-    private func generateAllImages() {
+    fileprivate func generateAllImages() {
         topImage = generateImage("top")
         topLeftImage = generateImage("topLeft")
         topRightImage = generateImage("topRight")
@@ -54,7 +54,7 @@ class DigitalView: UIView {
         background = generateImage("eight", color: "gray")
     }
 
-    private func generateImage(location: String, color optColor: String? = nil) -> UIImage? {
+    fileprivate func generateImage(_ location: String, color optColor: String? = nil) -> UIImage? {
         let color = optColor ?? self.color.rawValue
         return UIImage(named: "digital-\(color)-\(location)")
     }
@@ -62,7 +62,7 @@ class DigitalView: UIView {
     override required init(frame: CGRect) {
         super.init(frame: frame)
 
-        backgroundColor = .clearColor()
+        backgroundColor = .clear
         generateAllImages()
     }
 
@@ -70,7 +70,7 @@ class DigitalView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func intrinsicContentSize() -> CGSize {
+    override var intrinsicContentSize: CGSize {
         let len = CGFloat(max(minTextLength, text.characters.count))
         return CGSize(width: Size.letterSize.width * len, height: Size.letterSize.height)
     }
@@ -95,7 +95,7 @@ class DigitalView: UIView {
         return (frame.height - drawLetterHeight()) / 2
     }
 
-    override func drawRect(frame: CGRect) {
+    override func draw(_ frame: CGRect) {
         let length = max(minTextLength, text.characters.count)
         let totalWidth = CGFloat(length) * self.drawLetterWidth()
         var x = (frame.width - totalWidth) / 2
@@ -115,7 +115,7 @@ class DigitalView: UIView {
     }
 
     func drawBackground(at x: CGFloat) {
-        background.drawInRect(CGRect(
+        background.draw(in: CGRect(
             x: x,
             y: drawLetterTop(),
             width: drawLetterWidth(),
@@ -123,7 +123,7 @@ class DigitalView: UIView {
             ))
     }
 
-    func drawLetter(letter: String, at x: CGFloat) {
+    func drawLetter(_ letter: String, at x: CGFloat) {
         var shouldDrawBackground = true
         let images: [UIImage]
         switch letter {
@@ -183,11 +183,11 @@ class DigitalView: UIView {
             height: drawLetterHeight()
             )
         for image in images {
-            image.drawInRect(rect)
+            image.draw(in: rect)
         }
     }
 
-    override func sizeThatFits(size: CGSize) -> CGSize {
+    override func sizeThatFits(_ size: CGSize) -> CGSize {
         let length = max(minTextLength, text.characters.count)
         return CGSize(width: CGFloat(length) * Size.letterSize.width, height: Size.letterSize.height)
     }
