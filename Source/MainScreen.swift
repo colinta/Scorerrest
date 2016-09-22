@@ -56,40 +56,70 @@ class MainScreen: Screen {
         get { return currentScoreView.text }
         set { currentScoreView.text = newValue ?? "0" }
     }
+    var undoEnabled: Bool {
+        get { return undoButton.isEnabled }
+        set { undoButton.isEnabled = newValue }
+    }
     weak var delegate: MainViewController?
 
-    fileprivate let namesView = UIScrollView()
-    fileprivate var scoreViews: [UILabel] = []
-    fileprivate var playerButtons: [UIButton] = []
+    let namesView = UIScrollView()
+    var scoreViews: [UILabel] = []
+    var playerButtons: [UIButton] = []
 
-    fileprivate let highlightedNameView = UIView()
-    fileprivate var highlightedLeading: Constraint?
-    fileprivate let addPlayerButton = UIButton()
-    fileprivate var addPlayerLeading: Constraint?
+    let highlightedNameView = UIView()
+    var highlightedLeading: Constraint?
+    let addPlayerButton = UIButton()
+    var addPlayerLeading: Constraint?
 
-    fileprivate let scoreboardView = UIScrollView()
-    fileprivate var scoreboardTrailing: Constraint?
-    fileprivate let buttonContainer = UIView()
-    fileprivate var buttonContainerWidth: Constraint?
+    let scoreboardView = UIScrollView()
+    var scoreboardTrailing: Constraint?
+    let buttonContainer = UIView()
+    let keypadContainer = UIView()
+    var keypadVisible = false
+    var buttonContainerWidth: Constraint?
+    var buttonContainerBottom: Constraint?
+    var keypadContainerBottom: Constraint?
 
-    fileprivate let currentScoreView = DigitalView()
-    fileprivate let clearButton = StyledButton(.gray, text: "C")
-    fileprivate let keypadButton = StyledButton(.gray, text: "123")
-    fileprivate let signButton = StyledButton(.red, text: "+/–")
-    fileprivate let okButton = StyledButton(.green, text: "OK")
-    fileprivate let memButton = StyledButton(.green, text: "M+")
-    fileprivate let minusFiveButton = StyledButton(.minusFive, text: "–5")
-    fileprivate let minusOneButton = StyledButton(.minusOne, text: "–")
-    fileprivate let plusOneButton = StyledButton(.plusOne, text: "+")
-    fileprivate let plusFiveButton = StyledButton(.plusFive, text: "+5")
-    fileprivate let memFeed = UILabel()
-    fileprivate let memView = UIScrollView()
-    fileprivate var memViewWidth: Constraint?
-    fileprivate var memViewHeight: Constraint?
+    let currentScoreView = DigitalView()
+    let restartButton = StyledButton(.gray, image: "restart")
+    let clearButton = StyledButton(.gray, text: "C")
+    let keypadButton = StyledButton(.gray, text: "123")
+    let signButton = StyledButton(.red, text: "+/–")
+    let okButton = StyledButton(.green, text: "OK")
+    let memButton = StyledButton(.green, text: "M+")
+    let undoButton = StyledButton(.green, image: "undo")
 
-    fileprivate let overlay = UIView()
-    fileprivate let overlayBg = UIView()
-    fileprivate let playerTable = UITableView()
+    let minusFiveButton = StyledButton(.minusFive, text: "–5")
+    let minusOneButton = StyledButton(.minusOne, text: "–")
+    let plusOneButton = StyledButton(.plusOne, text: "+")
+    let plusFiveButton = StyledButton(.plusFive, text: "+5")
+
+    let keypad1 = StyledButton(.blue, text: "1")
+    let keypad2 = StyledButton(.blue, text: "2")
+    let keypad3 = StyledButton(.blue, text: "3")
+    let keypad4 = StyledButton(.blue, text: "4")
+    let keypad5 = StyledButton(.blue, text: "5")
+    let keypad6 = StyledButton(.blue, text: "6")
+    let keypad7 = StyledButton(.blue, text: "7")
+    let keypad8 = StyledButton(.blue, text: "8")
+    let keypad9 = StyledButton(.blue, text: "9")
+    let keypad0 = StyledButton(.blue, text: "0")
+    let keypad00 = StyledButton(.blue, text: "00")
+    let keypad000 = StyledButton(.blue, text: "000")
+
+    let memFeed = UILabel()
+    let memView = UIScrollView()
+    var memViewWidth: Constraint?
+    var memViewHeight: Constraint?
+
+    let overlay = UIView()
+    let overlayBg = UIView()
+    let playerTable = UITableView()
+
+    let confirmButtons = UIView()
+    let confirmButton = UIButton()
+    let cancelButton = UIButton()
+    var confirmHandler: BasicBlock?
 
     override func style() {
         let scoreboardColor = UIColor(patternImage: UIImage(named: "notepad")!)
@@ -100,11 +130,18 @@ class MainScreen: Screen {
         addPlayerButton.backgroundColor = UIColor(hex: 0x70B304)
         addPlayerButton.titleEdgeInsets.bottom = 4
         addPlayerButton.layer.cornerRadius = 5
+        confirmButton.setTitle("OK", for: .normal)
+        confirmButton.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 20)
+        confirmButton.setTitleColor(.black, for: .normal)
+        confirmButton.backgroundColor = .white
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 20)
+        cancelButton.setTitleColor(.white, for: .normal)
+        cancelButton.backgroundColor = .black
         highlightedNameView.backgroundColor = .yellow
         highlightedNameView.isHidden = true
         minusFiveButton.titleEdgeInsets.right = Size.buttonOverlap
         plusFiveButton.titleEdgeInsets.right = Size.buttonOverlap
-        signButton.isHidden = true
         memFeed.font = UIFont(name: "HelveticaNeue-Light", size: 14)
         memFeed.textAlignment = .right
         memView.showsVerticalScrollIndicator = false
@@ -122,6 +159,8 @@ class MainScreen: Screen {
     }
 
     override func bindActions() {
+        restartButton.addTarget(self, action: #selector(restartTapped), for: .touchUpInside)
+        undoButton.addTarget(self, action: #selector(undoTapped), for: .touchUpInside)
         clearButton.addTarget(self, action: #selector(clearTapped), for: .touchUpInside)
         keypadButton.addTarget(self, action: #selector(keypadTapped), for: .touchUpInside)
         signButton.addTarget(self, action: #selector(signTapped), for: .touchUpInside)
@@ -132,10 +171,25 @@ class MainScreen: Screen {
         plusOneButton.addTarget(self, action: #selector(plusOneTapped), for: .touchUpInside)
         plusFiveButton.addTarget(self, action: #selector(plusFiveTapped), for: .touchUpInside)
         addPlayerButton.addTarget(self, action: #selector(addPlayerTapped), for: .touchUpInside)
+        confirmButton.addTarget(self, action: #selector(confirmTapped), for: .touchUpInside)
+        cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
         scoreboardView.delegate = self
         namesView.delegate = self
         playerTable.dataSource = self
         playerTable.delegate = self
+
+        keypad1.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
+        keypad2.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
+        keypad3.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
+        keypad4.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
+        keypad5.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
+        keypad6.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
+        keypad7.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
+        keypad8.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
+        keypad9.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
+        keypad0.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
+        keypad00.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
+        keypad000.addTarget(self, action: #selector(keypadNumberTapped(_:)), for: .touchUpInside)
 
         let gesture = UITapGestureRecognizer()
         gesture.addTarget(self, action: #selector(hideOverlay))
@@ -146,27 +200,46 @@ class MainScreen: Screen {
         addSubview(namesView)
         addSubview(scoreboardView)
         addSubview(buttonContainer)
+        addSubview(keypadContainer)
         addSubview(overlay)
 
         namesView.addSubview(highlightedNameView)
         namesView.addSubview(addPlayerButton)
 
         buttonContainer.addSubview(currentScoreView)
+        buttonContainer.addSubview(restartButton)
         buttonContainer.addSubview(clearButton)
         buttonContainer.addSubview(keypadButton)
-        buttonContainer.addSubview(signButton)
         buttonContainer.addSubview(okButton)
         buttonContainer.addSubview(memButton)
+        buttonContainer.addSubview(undoButton)
         buttonContainer.addSubview(minusFiveButton)
         buttonContainer.addSubview(plusFiveButton)
         buttonContainer.addSubview(minusOneButton)
         buttonContainer.addSubview(plusOneButton)
         buttonContainer.addSubview(memView)
 
+        keypadContainer.addSubview(keypad1)
+        keypadContainer.addSubview(keypad2)
+        keypadContainer.addSubview(keypad3)
+        keypadContainer.addSubview(keypad4)
+        keypadContainer.addSubview(keypad5)
+        keypadContainer.addSubview(keypad6)
+        keypadContainer.addSubview(keypad7)
+        keypadContainer.addSubview(keypad8)
+        keypadContainer.addSubview(keypad9)
+        keypadContainer.addSubview(keypad0)
+        keypadContainer.addSubview(keypad00)
+        keypadContainer.addSubview(keypad000)
+        keypadContainer.addSubview(signButton)
+
         memView.addSubview(memFeed)
 
         overlay.addSubview(overlayBg)
         overlay.addSubview(playerTable)
+        overlay.addSubview(confirmButtons)
+        confirmButtons.addSubview(confirmButton)
+        confirmButtons.addSubview(cancelButton)
 
         namesView.snp.makeConstraints { make in
             make.top.equalTo(self).offset(20)
@@ -193,10 +266,11 @@ class MainScreen: Screen {
             make.width.equalTo(self).priority(Priority.Medium)
             make.width.lessThanOrEqualTo(Size.buttonContainerMaxWidth).priority(Priority.High)
             // make.bottom.centerX.equalTo(keyboardAnchor.snp.top)
-            make.bottom.centerX.equalTo(self)
+            make.centerX.equalTo(self)
+            buttonContainerBottom = make.bottom.equalTo(self).constraint
             make.top.lessThanOrEqualTo(currentScoreView.snp.top)
-            make.top.lessThanOrEqualTo(memButton.snp.top)
-            make.top.lessThanOrEqualTo(clearButton.snp.top)
+            make.top.lessThanOrEqualTo(undoButton.snp.top)
+            make.top.lessThanOrEqualTo(restartButton.snp.top)
         }
         let buttonContainerWidthAnchor = UIView()
         buttonContainer.addSubview(buttonContainerWidthAnchor)
@@ -204,6 +278,13 @@ class MainScreen: Screen {
             buttonContainerWidth = make.width.equalTo(frame.size.width).priority(Priority.Required).constraint
             make.leading.trailing.equalTo(buttonContainer)
         }
+
+        keypadContainer.snp.makeConstraints { make in
+            make.leading.trailing.width.equalTo(buttonContainer)
+            make.top.equalTo(buttonContainer.snp.bottom)
+            keypadContainerBottom = make.bottom.equalTo(self).constraint
+        }
+        keypadContainerBottom?.deactivate()
 
         currentScoreView.snp.makeConstraints { make in
             make.top.equalTo(buttonContainer).offset(Size.margin)
@@ -219,9 +300,9 @@ class MainScreen: Screen {
             make.leading.equalTo(buttonContainer).offset(Size.margin)
             make.bottom.equalTo(keypadButton.snp.top).offset(-Size.margin)
         }
-        signButton.snp.makeConstraints { make in
+        restartButton.snp.makeConstraints { make in
             make.leading.equalTo(buttonContainer).offset(Size.margin)
-            make.bottom.equalTo(buttonContainer).offset(-Size.bottomMargin)
+            make.bottom.equalTo(clearButton.snp.top).offset(-Size.bottomMargin)
         }
         okButton.snp.makeConstraints { make in
             make.trailing.equalTo(buttonContainer).offset(-Size.margin)
@@ -230,6 +311,10 @@ class MainScreen: Screen {
         memButton.snp.makeConstraints { make in
             make.trailing.equalTo(buttonContainer).offset(-Size.margin)
             make.bottom.equalTo(okButton.snp.top).offset(-Size.bottomMargin)
+        }
+        undoButton.snp.makeConstraints { make in
+            make.trailing.equalTo(buttonContainer).offset(-Size.margin)
+            make.bottom.equalTo(memButton.snp.top).offset(-Size.bottomMargin)
         }
 
         minusFiveButton.snp.makeConstraints { make in
@@ -248,6 +333,65 @@ class MainScreen: Screen {
             make.centerY.equalTo(okButton)
             make.leading.equalTo(plusOneButton.snp.trailing).offset(-Size.buttonOverlap)
         }
+
+        signButton.snp.makeConstraints { make in
+            make.leading.equalTo(keypadContainer).offset(Size.margin)
+            make.bottom.equalTo(keypad0)
+        }
+
+        keypad7.snp.makeConstraints { make in
+            make.top.equalTo(keypad8)
+            make.trailing.equalTo(keypad8.snp.leading).offset(-Size.margin)
+        }
+        keypad8.snp.makeConstraints { make in
+            make.top.equalTo(keypadContainer).offset(Size.margin)
+            make.centerX.equalTo(keypadContainer)
+        }
+        keypad9.snp.makeConstraints { make in
+            make.top.equalTo(keypad8)
+            make.leading.equalTo(keypad8.snp.trailing).offset(Size.margin)
+        }
+
+        keypad4.snp.makeConstraints { make in
+            make.top.equalTo(keypad5)
+            make.trailing.equalTo(keypad5.snp.leading).offset(-Size.margin)
+        }
+        keypad5.snp.makeConstraints { make in
+            make.top.equalTo(keypad8.snp.bottom).offset(Size.margin)
+            make.centerX.equalTo(keypadContainer)
+        }
+        keypad6.snp.makeConstraints { make in
+            make.top.equalTo(keypad5)
+            make.leading.equalTo(keypad5.snp.trailing).offset(Size.margin)
+        }
+
+        keypad1.snp.makeConstraints { make in
+            make.top.equalTo(keypad2)
+            make.trailing.equalTo(keypad2.snp.leading).offset(-Size.margin)
+        }
+        keypad2.snp.makeConstraints { make in
+            make.top.equalTo(keypad5.snp.bottom).offset(Size.margin)
+            make.centerX.equalTo(keypadContainer)
+        }
+        keypad3.snp.makeConstraints { make in
+            make.top.equalTo(keypad2)
+            make.leading.equalTo(keypad2.snp.trailing).offset(Size.margin)
+        }
+
+        keypad0.snp.makeConstraints { make in
+            make.top.equalTo(keypad00)
+            make.trailing.equalTo(keypad00.snp.leading).offset(-Size.margin)
+        }
+        keypad00.snp.makeConstraints { make in
+            make.top.equalTo(keypad2.snp.bottom).offset(Size.margin)
+            make.centerX.equalTo(keypadContainer)
+            make.bottom.equalTo(keypadContainer).offset(-Size.margin)
+        }
+        keypad000.snp.makeConstraints { make in
+            make.top.equalTo(keypad00)
+            make.leading.equalTo(keypad00.snp.trailing).offset(Size.margin)
+        }
+
         let memViewSizeAnchor = UIView()
         memView.addSubview(memViewSizeAnchor)
         memViewSizeAnchor.snp.makeConstraints { make in
@@ -278,6 +422,16 @@ class MainScreen: Screen {
             make.bottom.equalTo(overlay).offset(-Size.tableMargins.bottom).priority(Priority.Medium)
             make.bottom.equalTo(keyboardAnchor.snp.top).offset(-Size.tableMargins.bottom).priority(Priority.Required)
         }
+        confirmButtons.snp.makeConstraints { make in
+            make.center.equalTo(overlay)
+        }
+        confirmButton.snp.makeConstraints { make in
+            make.leading.top.bottom.equalTo(confirmButtons)
+        }
+        cancelButton.snp.makeConstraints { make in
+            make.leading.equalTo(confirmButton).offset(Size.margin)
+            make.trailing.top.bottom.equalTo(confirmButtons)
+        }
     }
 
     override func layoutSubviews() {
@@ -297,11 +451,18 @@ extension MainScreen {
         let underlined: [String: AnyObject] = [
             NSFontAttributeName: UIFont(name: "HelveticaNeue-Light", size: 14)!,
             NSForegroundColorAttributeName: UIColor.black,
-            NSUnderlineStyleAttributeName: NSUnderlineStyle.styleSingle as AnyObject,
+            NSUnderlineStyleAttributeName: NSUnderlineStyle.styleSingle.rawValue as AnyObject,
         ]
         for (index, player) in activePlayers.enumerated() {
             let playerView = playerButtons[index]
-            playerView.setTitle(player.name + "\n\(player.score)", for: .normal)
+            let title: String
+            if player.score == 0 {
+                title = player.name
+            }
+            else {
+                title = "\(player.name)\n\(player.score)"
+            }
+            playerView.setTitle(title, for: .normal)
             let scoreboardLabel = scoreViews[index]
 
             let scoreText = NSMutableAttributedString()
@@ -341,7 +502,7 @@ extension MainScreen: UIScrollViewDelegate {
 }
 
 extension MainScreen {
-    fileprivate func updateNameViews() {
+    func updateNameViews() {
         for view in playerButtons {
             view.removeFromSuperview()
         }
@@ -424,7 +585,7 @@ extension MainScreen {
         updateScores()
     }
 
-    fileprivate func updateHighlight() {
+    func updateHighlight() {
         highlightedNameView.isHidden = activePlayers.count == 0
 
         highlightedLeading?.deactivate()
@@ -436,19 +597,55 @@ extension MainScreen {
                 highlightedLeading = nil
             }
         }
-        // layoutIfNeeded()
         namesView.scrollRectToVisible(highlightedNameView.frame, animated: true)
     }
 }
 
 // MARK: Actions
 extension MainScreen {
+    func restartTapped() {
+        showConfirm("Restart game?") {
+            self.delegate?.restartTapped()
+        }
+    }
+    func undoTapped() {
+        delegate?.undoTapped()
+    }
     func clearTapped() {
         delegate?.clearTapped()
     }
 
     func keypadTapped() {
-        delegate?.keypadTapped()
+        keypadVisible = !keypadVisible
+        if keypadVisible {
+            buttonContainerBottom?.deactivate()
+            keypadContainerBottom?.activate()
+        }
+        else {
+            keypadContainerBottom?.deactivate()
+            buttonContainerBottom?.activate()
+        }
+        UIView.animate(withDuration: 0.3) {
+            self.layoutIfNeeded()
+        }
+    }
+
+    func keypadNumberTapped(_ sender: UIButton) {
+        switch sender {
+        case keypad1: delegate?.concat(number: "1")
+        case keypad2: delegate?.concat(number: "2")
+        case keypad3: delegate?.concat(number: "3")
+        case keypad4: delegate?.concat(number: "4")
+        case keypad5: delegate?.concat(number: "5")
+        case keypad6: delegate?.concat(number: "6")
+        case keypad7: delegate?.concat(number: "7")
+        case keypad8: delegate?.concat(number: "8")
+        case keypad9: delegate?.concat(number: "9")
+        case keypad0: delegate?.concat(number: "0")
+        case keypad00: delegate?.concat(number: "00")
+        case keypad000: delegate?.concat(number: "000")
+        default: break
+        }
     }
 
     func signTapped() {
@@ -488,27 +685,59 @@ extension MainScreen {
     func addPlayerTapped() {
         delegate?.addPlayerTapped()
     }
+
+    func confirmTapped() {
+        confirmHandler?()
+        confirmHandler = nil
+        hideOverlay()
+    }
+
+    func cancelTapped() {
+        confirmHandler = nil
+        hideOverlay()
+    }
 }
 
 extension MainScreen {
-    func showOverlay() {
-        savedPlayers = activePlayers.enumerated().map { ($0 + 1, $1.name) }
-        playerTable.reloadData()
+    private func showOverlay() {
         overlay.isHidden = false
         UIView.animate(withDuration: 0.3) {
             self.overlay.alpha = 1
         }
     }
 
+    func showConfirm(_ message: String, handler: @escaping BasicBlock) {
+        showOverlay()
+        confirmHandler = handler
+        playerTable.isHidden = true
+        confirmButtons.isHidden = false
+    }
+
+    func showPlayers() {
+        showOverlay()
+        savedPlayers = activePlayers.enumerated().map { ($0 + 1, $1.name) }
+        playerTable.reloadData()
+        playerTable.isHidden = false
+        confirmButtons.isHidden = true
+    }
+
     func hideOverlay() {
-        activePlayers = savedPlayers.sorted(by: { $0.0 < $1.0 }).map { _, name in
-            for player in activePlayers {
-                if player.name == name {
-                    return player
+        if !playerTable.isHidden {
+            let prevPlayers = activePlayers.map { $0.name }
+            let currentPlayers: [Player] = savedPlayers.sorted(by: { $0.0 < $1.0 }).map { _, name in
+                for player in activePlayers {
+                    if player.name == name {
+                        return player
+                    }
                 }
+                return Player(name: name)
             }
-            return Player(name: name)
+            if prevPlayers != currentPlayers.map { $0.name } {
+                delegate?.activePlayersWillUpdate()
+            }
+            activePlayers = currentPlayers
         }
+        confirmHandler = nil
 
         UIView.animate(withDuration: 0.3, animations: {
             self.overlay.alpha = 0
@@ -578,7 +807,6 @@ extension MainScreen: UITableViewDelegate {
                 delegate: self, cancelButtonTitle: "Cancel", otherButtonTitles: "OK")
             alert.alertViewStyle = .plainTextInput
             alert.show()
-
         }
         else {
             let name = allPlayers[indexPath.row]
@@ -618,6 +846,7 @@ extension MainScreen: UIAlertViewDelegate {
         {
             allPlayers.append(name)
             playerTable.reloadData()
+            delegate?.allPlayersUpdate(allPlayers)
         }
     }
 }
