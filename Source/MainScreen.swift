@@ -52,9 +52,9 @@ class MainScreen: Screen {
         get { return memFeed.text }
         set { memFeed.text = newValue}
     }
-    var currentScore: String? {
-        get { return currentScoreView.text }
-        set { currentScoreView.text = newValue ?? "0" }
+    var currentScore: Int? {
+        get { return Int(currentScoreView.text) }
+        set { currentScoreView.text = "\(newValue ?? 0)" }
     }
     var undoEnabled: Bool {
         get { return undoButton.isEnabled }
@@ -124,22 +124,31 @@ class MainScreen: Screen {
     override func style() {
         let scoreboardColor = UIColor(patternImage: UIImage(named: "notepad")!)
         scoreboardView.backgroundColor = scoreboardColor
+
         addPlayerButton.setTitle("+", for: .normal)
         addPlayerButton.setTitleColor(.white, for: .normal)
         addPlayerButton.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 20)
         addPlayerButton.backgroundColor = UIColor(hex: 0x70B304)
         addPlayerButton.titleEdgeInsets.bottom = 4
         addPlayerButton.layer.cornerRadius = 5
+
+        undoButton.isEnabled = false
+
         confirmButton.setTitle("OK", for: .normal)
         confirmButton.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 20)
         confirmButton.setTitleColor(.black, for: .normal)
         confirmButton.backgroundColor = .white
+        confirmButton.contentEdgeInsets = UIEdgeInsets(top: 5, left: 10, bottom: 5, right: 10)
+
         cancelButton.setTitle("Cancel", for: .normal)
         cancelButton.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 20)
         cancelButton.setTitleColor(.white, for: .normal)
         cancelButton.backgroundColor = .black
+        cancelButton.contentEdgeInsets = UIEdgeInsets(top: 5, left: 10, bottom: 5, right: 10)
+
         highlightedNameView.backgroundColor = .yellow
         highlightedNameView.isHidden = true
+
         minusFiveButton.titleEdgeInsets.right = Size.buttonOverlap
         plusFiveButton.titleEdgeInsets.right = Size.buttonOverlap
         memFeed.font = UIFont(name: "HelveticaNeue-Light", size: 14)
@@ -429,7 +438,7 @@ class MainScreen: Screen {
             make.leading.top.bottom.equalTo(confirmButtons)
         }
         cancelButton.snp.makeConstraints { make in
-            make.leading.equalTo(confirmButton).offset(Size.margin)
+            make.leading.equalTo(confirmButton.snp.trailing).offset(Size.margin)
             make.trailing.top.bottom.equalTo(confirmButtons)
         }
     }
@@ -460,7 +469,7 @@ extension MainScreen {
                 title = player.name
             }
             else {
-                title = "\(player.name)\n\(player.score)"
+                title = "\(player.name)\n\(player.score.localized)"
             }
             playerView.setTitle(title, for: .normal)
             let scoreboardLabel = scoreViews[index]
@@ -471,12 +480,12 @@ extension MainScreen {
             for score in player.scores {
                 total += score
                 if first {
-                    scoreText.append(NSAttributedString(string: "\(score)\n", attributes: normal))
+                    scoreText.append(NSAttributedString(string: "\(score.localized)\n", attributes: normal))
                 }
                 else {
-                    let scoreString: String = (score >= 0 ? "+ \(score)" : "- \(-score)")
+                    let scoreString: String = (score >= 0 ? "+ \(score.localized)" : "- \((-score).localized)")
                     scoreText.append(NSAttributedString(string: scoreString, attributes: underlined))
-                    scoreText.append(NSAttributedString(string: "\n\(total)\n", attributes: normal))
+                    scoreText.append(NSAttributedString(string: "\n\(total.localized)\n", attributes: normal))
                 }
 
                 first = false
@@ -559,7 +568,7 @@ extension MainScreen {
                 else {
                     make.leading.equalTo(scoreboardView).offset(Size.margin)
                 }
-                make.width.equalTo(Size.highlightedSize.width - Size.margin)
+                make.width.equalTo(Size.highlightedSize.width - 2 * Size.margin)
             }
 
             prevScore = score
@@ -707,6 +716,7 @@ extension MainScreen {
     }
 
     func showConfirm(_ message: String, handler: @escaping BasicBlock) {
+        confirmButton.setTitle(message, for: .normal)
         showOverlay()
         confirmHandler = handler
         playerTable.isHidden = true

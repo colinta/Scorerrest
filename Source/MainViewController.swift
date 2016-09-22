@@ -21,7 +21,7 @@ class MainViewController: UIViewController {
     }
     var currentScore: Int = 0 {
         didSet {
-            screen.currentScore = "\(currentScore)"
+            screen.currentScore = currentScore
         }
     }
     var mem: [Int] = [] {
@@ -37,10 +37,10 @@ class MainViewController: UIViewController {
                 if val >= 0 {
                     str += "+"
                 }
-                str += "\(val)"
+                str += val.localized
                 total += val
             }
-            screen.mem = "\(str) = \(total)"
+            screen.mem = "\(str) = \(total.localized)"
         }
     }
     var state: [State] = []
@@ -166,7 +166,9 @@ extension MainViewController {
     }
 
     func activePlayersWillUpdate() {
-        pushState()
+        if screen.activePlayers.count != 0 {
+            pushState()
+        }
     }
 
     func allPlayersUpdate(_ players: [String]) {
