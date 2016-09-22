@@ -3,6 +3,13 @@
 //
 
 class MainViewController: UIViewController {
+    struct State {
+        let activePlayers: [Player]
+        let currentPlayer: Int
+        let currentScore: Int
+        let mem: [Int]
+    }
+
     var screen: MainScreen { return self.view as! MainScreen }
     var activePlayers: [Player] {
         get { return screen.activePlayers }
@@ -36,6 +43,7 @@ class MainViewController: UIViewController {
             screen.mem = "\(str) = \(total)"
         }
     }
+    var state: [State] = []
 
     override func loadView() {
         let screen = MainScreen()
@@ -59,34 +67,70 @@ class MainViewController: UIViewController {
             screen.activePlayers = []
         }
 
-        screen.allPlayers = [
-            "", ""
-        ]
         screen.activePlayers = [
-            Player(name: ""), Player(name: "")
         ]
+    }
+}
+
+// MARK: State
+
+extension MainViewController {
+    func pushState() {
+        state.append(State(
+            activePlayers: activePlayers.map { $0.copy() },
+            currentPlayer: currentPlayer,
+            currentScore: currentScore,
+            mem: mem
+            ))
+        screen.undoEnabled = true
+    }
+
+    func popState() {
+        if let last = state.popLast() {
+            activePlayers = last.activePlayers
+            currentPlayer = last.currentPlayer
+            currentScore = last.currentScore
+            mem = last.mem
+        }
+
+        screen.undoEnabled = state.count > 0
     }
 }
 
 // MARK: Actions
 
 extension MainViewController {
+    func restartTapped() {
+        screen.activePlayers = screen.activePlayers.map { Player(name: $0.name) }
+        state = []
+        mem = []
+        currentScore = 0
+        screen.undoEnabled = false
+    }
+
+    func undoTapped() {
+        popState()
+    }
+
     func clearTapped() {
         mem = []
         currentScore = 0
     }
 
-    func keypadTapped() {
-        print("keypadTapped")
+    func signTapped() {
+        currentScore = -currentScore
     }
 
-    func signTapped() {
-        print("signTapped")
+    func concat(number: String) {
+        if let score = Int("\(currentScore)\(number)") {
+            currentScore = score
+        }
     }
 
     func okTapped() {
         guard currentPlayer < activePlayers.count else { return }
 
+        pushState()
         let total = mem.reduce(0, +) + currentScore
         activePlayers[currentPlayer].append(total)
         currentPlayer = (currentPlayer + 1) % activePlayers.count
@@ -118,7 +162,11 @@ extension MainViewController {
     }
 
     func addPlayerTapped() {
-        screen.showOverlay()
+        screen.showPlayers()
+    }
+
+    func activePlayersWillUpdate() {
+        pushState()
     }
 
     func allPlayersUpdate(_ players: [String]) {

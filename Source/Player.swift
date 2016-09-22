@@ -15,4 +15,10 @@ class Player {
     func append(_ score: Int) {
         scores.append(score)
     }
+
+    func copy() -> Player {
+        let copy = Player(name: name)
+        copy.scores = scores
+        return copy
+    }
 }

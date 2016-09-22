@@ -27,9 +27,9 @@ final class StyledButton: UIButton {
         let size: Size
         var cgsize: CGSize {
             switch size {
-            case .medium: return CGSize(width: 45, height: 35)
-            case .wide: return CGSize(width: 55, height: 35)
-            case .large: return CGSize(width: 55, height: 40)
+            case .medium: return CGSize(width: 45, height: 40)
+            case .wide: return CGSize(width: 55, height: 40)
+            case .large: return CGSize(width: 55, height: 45)
             }
         }
 
@@ -99,6 +99,14 @@ final class StyledButton: UIButton {
         self.init()
         self.style = style
         self.setTitle(text, for: .normal)
+        updateStyle()
+    }
+
+    convenience init(_ style: Style, image: String) {
+        self.init()
+        self.style = style
+        self.setImage(UIImage(named: image), for: .normal)
+        self.imageView?.contentMode = .center
         updateStyle()
     }
 
