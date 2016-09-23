@@ -66,9 +66,6 @@ class MainViewController: UIViewController {
             ]
             screen.activePlayers = []
         }
-
-        screen.activePlayers = [
-        ]
     }
 }
 
