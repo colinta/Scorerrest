@@ -781,8 +781,14 @@ extension MainScreen: UITableViewDataSource {
                     newPlayers.append(name)
                 }
             }
+            var order = 0
+            savedPlayers = savedPlayers.sorted(by: { $0.0 < $1.0 }).map { _, name in
+                order += 1
+                return (order, name)
+            }
             allPlayers = newPlayers
             playerTable.reloadData()
+            delegate?.allPlayersUpdate(allPlayers)
         }
     }
 
