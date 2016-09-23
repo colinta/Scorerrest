@@ -311,7 +311,7 @@ class MainScreen: Screen {
         }
         restartButton.snp.makeConstraints { make in
             make.leading.equalTo(buttonContainer).offset(Size.margin)
-            make.bottom.equalTo(clearButton.snp.top).offset(-Size.bottomMargin)
+            make.bottom.equalTo(clearButton.snp.top).offset(-Size.margin)
         }
         okButton.snp.makeConstraints { make in
             make.trailing.equalTo(buttonContainer).offset(-Size.margin)
@@ -319,11 +319,11 @@ class MainScreen: Screen {
         }
         memButton.snp.makeConstraints { make in
             make.trailing.equalTo(buttonContainer).offset(-Size.margin)
-            make.bottom.equalTo(okButton.snp.top).offset(-Size.bottomMargin)
+            make.bottom.equalTo(okButton.snp.top).offset(-Size.margin)
         }
         undoButton.snp.makeConstraints { make in
             make.trailing.equalTo(buttonContainer).offset(-Size.margin)
-            make.bottom.equalTo(memButton.snp.top).offset(-Size.bottomMargin)
+            make.bottom.equalTo(memButton.snp.top).offset(-Size.margin)
         }
 
         minusFiveButton.snp.makeConstraints { make in
