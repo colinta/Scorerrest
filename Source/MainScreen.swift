@@ -726,6 +726,16 @@ extension MainScreen {
     func showPlayers() {
         showOverlay()
         savedPlayers = activePlayers.enumerated().map { ($0 + 1, $1.name) }
+        var added = false
+        for player in activePlayers {
+            if !allPlayers.contains(player.name) {
+                allPlayers.append(player.name)
+                added = true
+            }
+        }
+        if added {
+            delegate?.allPlayersUpdate(allPlayers)
+        }
         playerTable.reloadData()
         playerTable.isHidden = false
         confirmButtons.isHidden = true

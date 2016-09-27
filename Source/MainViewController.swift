@@ -3,13 +3,6 @@
 //
 
 class MainViewController: UIViewController {
-    struct State {
-        let activePlayers: [Player]
-        let currentPlayer: Int
-        let currentScore: Int
-        let mem: [Int]
-    }
-
     var screen: MainScreen { return self.view as! MainScreen }
     var activePlayers: [Player] {
         get { return screen.activePlayers }
@@ -44,6 +37,11 @@ class MainViewController: UIViewController {
         }
     }
     var state: [State] = []
+    var archivePath: String {
+        let manager = FileManager.default
+        let url = manager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return url.appendingPathComponent("scorerrest").path
+    }
 
     override func loadView() {
         let screen = MainScreen()
@@ -54,17 +52,19 @@ class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        if let allPlayers = UserDefaults.standard.object(forKey: "allPlayers") as? [String] {
-            screen.allPlayers = allPlayers
-            if allPlayers.count >= 2 {
-                screen.activePlayers = [Player(name: allPlayers[0]), Player(name: allPlayers[1])]
+        if !restore() {
+            if let allPlayers = UserDefaults.standard.object(forKey: "allPlayers") as? [String] {
+                screen.allPlayers = allPlayers
+                if allPlayers.count >= 2 {
+                    screen.activePlayers = [Player(name: allPlayers[0]), Player(name: allPlayers[1])]
+                }
             }
-        }
-        else {
-            screen.allPlayers = [
-                "Mr. White", "Mr. Blue", "Mr. Pink"
-            ]
-            screen.activePlayers = []
+            else {
+                screen.allPlayers = [
+                    "Mr. White", "Mr. Blue", "Mr. Pink"
+                ]
+                screen.activePlayers = []
+            }
         }
     }
 }
@@ -72,17 +72,22 @@ class MainViewController: UIViewController {
 // MARK: State
 
 extension MainViewController {
-    func pushState() {
-        state.append(State(
-            activePlayers: activePlayers.map { $0.copy() },
+    func currentState() -> State {
+        return State(
+            activePlayers: activePlayers.map { $0.clone() },
             currentPlayer: currentPlayer,
             currentScore: currentScore,
             mem: mem
-            ))
-        screen.undoEnabled = true
+        )
     }
 
-    func popState() {
+    func pushState() {
+        state.append(currentState())
+        screen.undoEnabled = true
+        save()
+    }
+
+    func popState(save: Bool = true) {
         if let last = state.popLast() {
             activePlayers = last.activePlayers
             currentPlayer = last.currentPlayer
@@ -91,6 +96,24 @@ extension MainViewController {
         }
 
         screen.undoEnabled = state.count > 0
+        if save {
+            self.save()
+        }
+    }
+
+    func save() {
+        let path = archivePath
+        NSKeyedArchiver.archiveRootObject(state + [currentState()], toFile: path)
+    }
+
+    func restore() -> Bool {
+        let path = archivePath
+        if let archive = NSKeyedUnarchiver.unarchiveObject(withFile: path) as? [State] {
+            state = archive
+            popState(save: false)
+            return true
+        }
+        return false
     }
 }
 
@@ -103,6 +126,7 @@ extension MainViewController {
         mem = []
         currentScore = 0
         screen.undoEnabled = false
+        save()
     }
 
     func undoTapped() {
@@ -112,15 +136,18 @@ extension MainViewController {
     func clearTapped() {
         mem = []
         currentScore = 0
+        save()
     }
 
     func signTapped() {
         currentScore = -currentScore
+        save()
     }
 
     func concat(number: String) {
         if let score = Int("\(currentScore)\(number)") {
             currentScore = score
+            save()
         }
     }
 
@@ -135,27 +162,33 @@ extension MainViewController {
 
         mem = []
         currentScore = 0
+        save()
     }
 
     func memTapped() {
         mem.append(currentScore)
         currentScore = 0
+        save()
     }
 
     func minusFiveTapped() {
         currentScore -= 5
+        save()
     }
 
     func minusOneTapped() {
         currentScore -= 1
+        save()
     }
 
     func plusOneTapped() {
         currentScore += 1
+        save()
     }
 
     func plusFiveTapped() {
         currentScore += 5
+        save()
     }
 
     func addPlayerTapped() {
