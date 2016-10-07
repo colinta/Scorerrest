@@ -201,7 +201,7 @@ extension MainViewController {
         }
     }
 
-    func allPlayersUpdate(_ players: [String]) {
+    func allPlayersUpdated(_ players: [String]) {
         UserDefaults.standard.set(players, forKey: "allPlayers")
     }
 }

@@ -33,12 +33,7 @@ class MainScreen: Screen {
         static let tableMargins = UIEdgeInsets(top: 90, left: 20, bottom: 45, right: 20)
     }
 
-    var allPlayers: [String] = [] {
-        didSet {
-            playerTable.reloadData()
-        }
-    }
-    var savedPlayers: [(Int, String)] = []
+    var allPlayers: [String] = []
     var activePlayers: [Player] = [] {
         didSet {
             updateNameViews()
@@ -114,12 +109,16 @@ class MainScreen: Screen {
 
     let overlay = UIView()
     let overlayBg = UIView()
+
     let playerTable = UITableView()
+    let playerTableHelper = PlayerTableHelper()
 
     let confirmButtons = UIView()
     let confirmButton = UIButton()
     let cancelButton = UIButton()
     var confirmHandler: BasicBlock?
+
+    let scoresTable = UITableView()
 
     override func style() {
         let scoreboardColor = UIColor(patternImage: UIImage(named: "notepad")!)
@@ -165,6 +164,7 @@ class MainScreen: Screen {
         overlay.alpha = 0
 
         playerTable.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        scoresTable.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
     }
 
     override func bindActions() {
@@ -184,8 +184,11 @@ class MainScreen: Screen {
         cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
         scoreboardView.delegate = self
         namesView.delegate = self
-        playerTable.dataSource = self
-        playerTable.delegate = self
+        playerTableHelper.delegate = self
+        playerTable.dataSource = playerTableHelper
+        playerTable.delegate = playerTableHelper
+        scoresTable.dataSource = self
+        scoresTable.delegate = self
 
         keypad1.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
         keypad2.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
@@ -246,6 +249,7 @@ class MainScreen: Screen {
 
         overlay.addSubview(overlayBg)
         overlay.addSubview(playerTable)
+        overlay.addSubview(scoresTable)
         overlay.addSubview(confirmButtons)
         confirmButtons.addSubview(confirmButton)
         confirmButtons.addSubview(cancelButton)
@@ -431,6 +435,11 @@ class MainScreen: Screen {
             make.bottom.equalTo(overlay).offset(-Size.tableMargins.bottom).priority(Priority.Medium)
             make.bottom.equalTo(keyboardAnchor.snp.top).offset(-Size.tableMargins.bottom).priority(Priority.Required)
         }
+        scoresTable.snp.makeConstraints { make in
+            make.top.leading.trailing.equalTo(overlay).inset(Size.tableMargins)
+            make.bottom.equalTo(overlay).offset(-Size.tableMargins.bottom).priority(Priority.Medium)
+            make.bottom.equalTo(keyboardAnchor.snp.top).offset(-Size.tableMargins.bottom).priority(Priority.Required)
+        }
         confirmButtons.snp.makeConstraints { make in
             make.center.equalTo(overlay)
         }
@@ -569,6 +578,12 @@ extension MainScreen {
                     make.leading.equalTo(scoreboardView).offset(Size.margin)
                 }
                 make.width.equalTo(Size.highlightedSize.width - 2 * Size.margin)
+            }
+
+            let adjustScoreButton = UIButton()
+            scoreboardView.addSubview(adjustScoreButton)
+            adjustScoreButton.snp.makeConstraints { make in
+                make.edges.equalTo(score)
             }
 
             prevScore = score
@@ -720,12 +735,12 @@ extension MainScreen {
         showOverlay()
         confirmHandler = handler
         playerTable.isHidden = true
+        scoresTable.isHidden = true
         confirmButtons.isHidden = false
     }
 
     func showPlayers() {
         showOverlay()
-        savedPlayers = activePlayers.enumerated().map { ($0 + 1, $1.name) }
         var added = false
         for player in activePlayers {
             if !allPlayers.contains(player.name) {
@@ -736,15 +751,20 @@ extension MainScreen {
         if added {
             delegate?.allPlayersUpdate(allPlayers)
         }
+
+        playerTableHelper.allPlayers = allPlayers
+        playerTableHelper.activePlayers = activePlayers
+
         playerTable.reloadData()
         playerTable.isHidden = false
+        scoresTable.isHidden = true
         confirmButtons.isHidden = true
     }
 
     func hideOverlay() {
         if !playerTable.isHidden {
             let prevPlayers = activePlayers.map { $0.name }
-            let currentPlayers: [Player] = savedPlayers.sorted(by: { $0.0 < $1.0 }).map { _, name in
+            let currentPlayers: [Player] = playerTableHelper.savedPlayers.sorted(by: { $0.0 < $1.0 }).map { _, name in
                 for player in activePlayers {
                     if player.name == name {
                         return player
@@ -757,6 +777,8 @@ extension MainScreen {
             }
             activePlayers = currentPlayers
         }
+        else if !scoresTable.isHidden {
+        }
         confirmHandler = nil
 
         UIView.animate(withDuration: 0.3, animations: {
@@ -767,112 +789,9 @@ extension MainScreen {
     }
 }
 
-extension MainScreen: UITableViewDataSource {
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
-
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return allPlayers.count + 1
-    }
-
-    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        return indexPath.row < allPlayers.count
-    }
-
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            var newPlayers: [String] = []
-            for (index, name) in allPlayers.enumerated() {
-                if index == indexPath.row {
-                    savedPlayers = savedPlayers.filter { $0.1 != name }
-                }
-                else {
-                    newPlayers.append(name)
-                }
-            }
-            var order = 0
-            savedPlayers = savedPlayers.sorted(by: { $0.0 < $1.0 }).map { _, name in
-                order += 1
-                return (order, name)
-            }
-            allPlayers = newPlayers
-            playerTable.reloadData()
-            delegate?.allPlayersUpdate(allPlayers)
-        }
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.font = UIFont(name: "HelveticaNeue-Light", size: 14)
-        if indexPath.row == allPlayers.count {
-            cell.textLabel?.textColor = .gray
-            cell.textLabel?.text = "New Player"
-        }
-        else {
-            cell.textLabel?.textColor = .black
-            let name = allPlayers[indexPath.row]
-            var text = name
-            for (index, player) in savedPlayers {
-                if player == name {
-                    text = "\(index). \(name)"
-                    break
-                }
-            }
-            cell.textLabel?.text = text
-        }
-        return cell
-    }
-}
-
-extension MainScreen: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let cell = tableView.cellForRow(at: indexPath)
-        if indexPath.row == allPlayers.count {
-            let alert = UIAlertView(title: "New Player", message: "",
-                delegate: self, cancelButtonTitle: "Cancel", otherButtonTitles: "OK")
-            alert.alertViewStyle = .plainTextInput
-            alert.show()
-        }
-        else {
-            let name = allPlayers[indexPath.row]
-            cell?.isSelected = false
-            var found = false
-            var players: [(Int, String)] = []
-            var newIndex = 1
-            for (_, player) in savedPlayers.sorted(by: { $0.0 < $1.0 }) {
-                if player == name {
-                    found = true
-                }
-                else {
-                    players.append((newIndex, player))
-                    newIndex += 1
-                }
-            }
-
-            if found {
-                savedPlayers = players
-                cell?.textLabel?.text = name
-                playerTable.reloadData()
-            }
-            else {
-                let index = savedPlayers.count + 1
-                savedPlayers.append((index, name))
-                cell?.textLabel?.text = "\(index). \(name)"
-            }
-        }
-    }
-}
-
-extension MainScreen: UIAlertViewDelegate {
-
-    func alertView(_ alertView: UIAlertView, clickedButtonAt buttonIndex: Int) {
-        if buttonIndex == 1, let name = alertView.textField(at: 0)?.text
-        , !name.characters.isEmpty && !allPlayers.contains(name)
-        {
-            allPlayers.append(name)
-            playerTable.reloadData()
-            delegate?.allPlayersUpdate(allPlayers)
-        }
+extension MainScreen: PlayerHelperDelegate {
+    func allPlayersUpdated(allPlayers: [String]) {
+        allPlayers = playerTableHelper.
+        delegate?.allPlayersUpdated(allPlayers)
     }
 }
