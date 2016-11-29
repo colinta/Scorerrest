@@ -20,8 +20,8 @@ class MainScreen: Screen {
             case .Required: return UILayoutPriorityRequired
             }
         }
-
     }
+
     struct Size {
         static let margin: CGFloat = 5
         static let buttonContainerMaxWidth: CGFloat = 400
@@ -60,6 +60,7 @@ class MainScreen: Screen {
     let namesView = UIScrollView()
     var scoreViews: [UILabel] = []
     var playerButtons: [UIButton] = []
+    var scoreButtons: [UIButton] = []
 
     let highlightedNameView = UIView()
     var highlightedLeading: Constraint?
@@ -119,6 +120,7 @@ class MainScreen: Screen {
     var confirmHandler: BasicBlock?
 
     let scoresTable = UITableView()
+    let scoresTableHelper = ScoresTableHelper()
 
     override func style() {
         let scoreboardColor = UIColor(patternImage: UIImage(named: "notepad")!)
@@ -184,11 +186,16 @@ class MainScreen: Screen {
         cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
         scoreboardView.delegate = self
         namesView.delegate = self
+
         playerTableHelper.delegate = self
+        playerTableHelper.table = playerTable
         playerTable.dataSource = playerTableHelper
         playerTable.delegate = playerTableHelper
-        scoresTable.dataSource = self
-        scoresTable.delegate = self
+
+        scoresTableHelper.delegate = self
+        scoresTableHelper.table = scoresTable
+        scoresTable.dataSource = scoresTableHelper
+        scoresTable.delegate = scoresTableHelper
 
         keypad1.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
         keypad2.addTarget(self, action: #selector(keypadNumberTapped), for: .touchUpInside)
@@ -272,13 +279,11 @@ class MainScreen: Screen {
             make.top.equalTo(namesView.snp.bottom)
             make.leading.trailing.equalTo(self)
             make.bottom.equalTo(buttonContainer.snp.top)
-            // make.bottom.equalTo(self)
         }
 
         buttonContainer.snp.makeConstraints { make in
             make.width.equalTo(self).priority(Priority.Medium)
             make.width.lessThanOrEqualTo(Size.buttonContainerMaxWidth).priority(Priority.High)
-            // make.bottom.centerX.equalTo(keyboardAnchor.snp.top)
             make.centerX.equalTo(self)
             buttonContainerBottom = make.bottom.equalTo(self).constraint
             make.top.lessThanOrEqualTo(currentScoreView.snp.top)
@@ -531,6 +536,7 @@ extension MainScreen {
         var prevView: UIView?
         var prevScore: UIView?
         playerButtons = []
+        scoreButtons = []
         scoreViews = []
         for player in activePlayers {
             let box = UIButton()
@@ -581,10 +587,13 @@ extension MainScreen {
             }
 
             let adjustScoreButton = UIButton()
+            scoreButtons.append(adjustScoreButton)
             scoreboardView.addSubview(adjustScoreButton)
             adjustScoreButton.snp.makeConstraints { make in
-                make.edges.equalTo(score)
+                make.top.bottom.equalTo(scoreboardView)
+                make.leading.trailing.equalTo(score)
             }
+            adjustScoreButton.addTarget(self, action: #selector(adjustScoresTapped(_:)), for: .touchUpInside)
 
             prevScore = score
         }
@@ -607,6 +616,7 @@ extension MainScreen {
         }
 
         updateScores()
+        updateHighlight()
     }
 
     func updateHighlight() {
@@ -676,6 +686,17 @@ extension MainScreen {
         delegate?.signTapped()
     }
 
+    func adjustScoresTapped(_ sender: UIButton) {
+        if let index = scoreButtons.index(of: sender) {
+            if index == currentPlayer {
+                showScores()
+            }
+            else {
+                currentPlayer = index
+            }
+        }
+    }
+
     func playerTapped(_ sender: UIButton) {
         if let index = playerButtons.index(of: sender) {
             currentPlayer = index
@@ -739,6 +760,17 @@ extension MainScreen {
         confirmButtons.isHidden = false
     }
 
+    func showScores() {
+        showOverlay()
+        let scores: [Int] = activePlayers[currentPlayer].scores
+        scoresTableHelper.scores = scores
+        scoresTable.reloadData()
+
+        playerTable.isHidden = true
+        scoresTable.isHidden = false
+        confirmButtons.isHidden = true
+    }
+
     func showPlayers() {
         showOverlay()
         var added = false
@@ -749,13 +781,13 @@ extension MainScreen {
             }
         }
         if added {
-            delegate?.allPlayersUpdate(allPlayers)
+            delegate?.allPlayersUpdated(allPlayers)
         }
 
         playerTableHelper.allPlayers = allPlayers
         playerTableHelper.activePlayers = activePlayers
-
         playerTable.reloadData()
+
         playerTable.isHidden = false
         scoresTable.isHidden = true
         confirmButtons.isHidden = true
@@ -778,6 +810,10 @@ extension MainScreen {
             activePlayers = currentPlayers
         }
         else if !scoresTable.isHidden {
+            delegate?.activePlayersWillUpdate()
+            activePlayers[currentPlayer].scores = scoresTableHelper.scores
+            updateNameViews()
+            delegate?.save()
         }
         confirmHandler = nil
 
@@ -789,9 +825,14 @@ extension MainScreen {
     }
 }
 
-extension MainScreen: PlayerHelperDelegate {
+extension MainScreen {
     func allPlayersUpdated(allPlayers: [String]) {
-        allPlayers = playerTableHelper.
+        self.allPlayers = allPlayers
         delegate?.allPlayersUpdated(allPlayers)
+    }
+}
+
+extension MainScreen {
+    func scoresUpdated(scores: [Int]) {
     }
 }

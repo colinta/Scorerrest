@@ -2,11 +2,12 @@
 ///  PlayerTableHelper.swift
 //
 
-class PlayerTableHelper {
+class PlayerTableHelper: NSObject {
     weak var delegate: MainScreen?
+    weak var table: UITableView!
     var allPlayers: [String] = [] {
         didSet {
-            playerTable.reloadData()
+            table.reloadData()
         }
     }
     var activePlayers: [Player] = [] {
@@ -47,8 +48,8 @@ extension PlayerTableHelper: UITableViewDataSource {
                 return (order, name)
             }
             allPlayers = newPlayers
-            playerTable.reloadData()
-            delegate?.allPlayersUpdated(allPlayers)
+            table.reloadData()
+            delegate?.allPlayersUpdated(allPlayers: allPlayers)
         }
     }
 
@@ -103,7 +104,7 @@ extension PlayerTableHelper: UITableViewDelegate {
             if found {
                 savedPlayers = players
                 cell?.textLabel?.text = name
-                playerTable.reloadData()
+                table.reloadData()
             }
             else {
                 let index = savedPlayers.count + 1
@@ -121,8 +122,8 @@ extension PlayerTableHelper: UIAlertViewDelegate {
         , !name.characters.isEmpty && !allPlayers.contains(name)
         {
             allPlayers.append(name)
-            playerTable.reloadData()
-            delegate?.allPlayersUpdated(allPlayers)
+            table.reloadData()
+            delegate?.allPlayersUpdated(allPlayers: allPlayers)
         }
     }
 }
