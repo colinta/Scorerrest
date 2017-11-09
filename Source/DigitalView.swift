@@ -7,10 +7,6 @@ class DigitalView: UIView {
         static let letterSize = CGSize(width: 24, height: 35)
         static let minTextLength = 3
     }
-    enum Color: String {
-        case black
-        case blue
-    }
 
     var text: String = "0" { didSet {
         guard text != oldValue else { return }
@@ -19,12 +15,6 @@ class DigitalView: UIView {
     } }
     var minTextLength: Int = Size.minTextLength { didSet {
         guard minTextLength != oldValue else { return }
-        setNeedsDisplay()
-        invalidateIntrinsicContentSize()
-    } }
-    var color: Color = .black { didSet {
-        guard color != oldValue else { return }
-        generateAllImages()
         setNeedsDisplay()
         invalidateIntrinsicContentSize()
     } }
@@ -43,19 +33,19 @@ class DigitalView: UIView {
     var background: UIImage!
 
     fileprivate func generateAllImages() {
-        topImage = generateImage("top")
-        topLeftImage = generateImage("topLeft")
-        topRightImage = generateImage("topRight")
-        middleImage = generateImage("middle")
-        bottomLeftImage = generateImage("bottomLeft")
-        bottomRightImage = generateImage("bottomRight")
-        bottomImage = generateImage("bottom")
-        colon = generateImage("colon")
-        background = generateImage("eight", color: "gray")
+        topImage = getUIImage("top")
+        topLeftImage = getUIImage("topLeft")
+        topRightImage = getUIImage("topRight")
+        middleImage = getUIImage("middle")
+        bottomLeftImage = getUIImage("bottomLeft")
+        bottomRightImage = getUIImage("bottomRight")
+        bottomImage = getUIImage("bottom")
+        colon = getUIImage("colon")
+        background = getUIImage("eight", color: "gray")
     }
 
-    fileprivate func generateImage(_ location: String, color optColor: String? = nil) -> UIImage? {
-        let color = optColor ?? self.color.rawValue
+    fileprivate func getUIImage(_ location: String, color optColor: String? = nil) -> UIImage? {
+        let color = optColor ?? "black"
         return UIImage(named: "digital-\(color)-\(location)")
     }
 
