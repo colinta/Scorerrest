@@ -7,11 +7,11 @@ import Foundation
 import CoreGraphics
 
 open class Keyboard {
-    public struct Notifications {
-        public static let KeyboardWillShow = TypedNotification<Keyboard>(name: "co.colinta.Keyboard.KeyboardWillShow")
-        public static let KeyboardDidShow = TypedNotification<Keyboard>(name: "co.colinta.Keyboard.KeyboardDidShow")
-        public static let KeyboardWillHide = TypedNotification<Keyboard>(name: "co.colinta.Keyboard.KeyboardWillHide")
-        public static let KeyboardDidHide = TypedNotification<Keyboard>(name: "co.colinta.Keyboard.KeyboardDidHide")
+    struct Notifications {
+        static let KeyboardWillShow = TypedNotification<Keyboard>(name: "co.colinta.Keyboard.KeyboardWillShow")
+        static let KeyboardDidShow = TypedNotification<Keyboard>(name: "co.colinta.Keyboard.KeyboardDidShow")
+        static let KeyboardWillHide = TypedNotification<Keyboard>(name: "co.colinta.Keyboard.KeyboardWillHide")
+        static let KeyboardDidHide = TypedNotification<Keyboard>(name: "co.colinta.Keyboard.KeyboardDidHide")
     }
 
     open static let shared = Keyboard()
@@ -28,7 +28,7 @@ open class Keyboard {
     open var options = UIViewAnimationOptions.curveLinear
     open var duration: Double = 0.0
 
-    public init() {
+    init() {
         let center: NotificationCenter = NotificationCenter.default
         center.addObserver(self, selector: #selector(Keyboard.willShow(_:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         center.addObserver(self, selector: #selector(Keyboard.didShow(_:)), name: NSNotification.Name.UIKeyboardDidShow, object: nil)

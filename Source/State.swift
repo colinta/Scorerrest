@@ -17,7 +17,7 @@ class State: NSObject, NSCoding {
     }
 
 
-    public required init(coder: NSCoder) {
+    required init(coder: NSCoder) {
         guard
             let activePlayers = coder.decodeObject(forKey: "activePlayers") as? [Player],
             let mem = coder.decodeObject(forKey: "mem") as? [Int]
@@ -37,7 +37,7 @@ class State: NSObject, NSCoding {
         self.mem = mem.map { Int($0) }
     }
 
-    public func encode(with coder: NSCoder) {
+    func encode(with coder: NSCoder) {
         coder.encode(activePlayers, forKey: "activePlayers")
         coder.encode(currentPlayer, forKey: "currentPlayer")
         coder.encode(currentScore, forKey: "currentScore")

@@ -133,6 +133,12 @@
       "idiom" : "ipad",
       "filename" : "icon-83_2x.png",
       "scale" : "2x"
+    },
+    {
+      "size" : "1024x1024",
+      "idiom" : "ios-marketing",
+      "filename" : "Scorerrest.png",
+      "scale" : "1x"
     }
   ],
   "info" : {

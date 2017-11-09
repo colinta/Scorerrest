@@ -27,7 +27,7 @@ class Player: NSObject, NSCoding {
         return copy
     }
 
-    public required init(coder: NSCoder) {
+    required init(coder: NSCoder) {
         guard
             let name = coder.decodeObject(forKey: "name") as? String,
             let scores = coder.decodeObject(forKey: "scores") as? [Int]
@@ -41,7 +41,7 @@ class Player: NSObject, NSCoding {
         self.scores = scores.map { Int($0) }
     }
 
-    public func encode(with coder: NSCoder) {
+    func encode(with coder: NSCoder) {
         coder.encode(name, forKey: "name")
         coder.encode(scores, forKey: "scores")
     }

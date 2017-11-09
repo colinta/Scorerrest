@@ -14,10 +14,10 @@ class MainScreen: Screen {
 
         var constraintPriorityTargetValue: Float {
             switch self {
-            case .Low: return UILayoutPriorityDefaultLow
-            case .Medium: return (UILayoutPriorityDefaultHigh + UILayoutPriorityDefaultLow) / 2
-            case .High: return UILayoutPriorityDefaultHigh
-            case .Required: return UILayoutPriorityRequired
+            case .Low: return UILayoutPriority.defaultLow.rawValue
+            case .Medium: return Float((Double(UILayoutPriority.defaultHigh.rawValue) + TimeInterval(UILayoutPriority.defaultLow.rawValue)) / 2)
+            case .High: return UILayoutPriority.defaultHigh.rawValue
+            case .Required: return UILayoutPriority.required.rawValue
             }
         }
     }
@@ -26,7 +26,12 @@ class MainScreen: Screen {
         static let margin: CGFloat = 5
         static let buttonContainerMaxWidth: CGFloat = 400
         static let currentScoreMaxWidth: CGFloat = 260
-        static let bottomMargin: CGFloat = 10
+        static let topMargin: CGFloat = {
+            return isX() ? 44 : 20
+        }()
+        static let bottomMargin: CGFloat = {
+            return isX() ? 22 : 10
+        }()
         static let buttonOverlap: CGFloat = 5
         static let gradientWidth: CGFloat = 30
         static let highlightedSize = CGSize(width: 90, height: 50)
@@ -117,7 +122,7 @@ class MainScreen: Screen {
     let confirmButtons = UIView()
     let confirmButton = UIButton()
     let cancelButton = UIButton()
-    var confirmHandler: BasicBlock?
+    var confirmHandler: Block?
 
     let scoresTable = UITableView()
     let scoresTableHelper = ScoresTableHelper()
@@ -262,7 +267,7 @@ class MainScreen: Screen {
         confirmButtons.addSubview(cancelButton)
 
         namesView.snp.makeConstraints { make in
-            make.top.equalTo(self).offset(20)
+            make.top.equalTo(self).offset(Size.topMargin)
             make.leading.trailing.equalTo(self)
             make.height.equalTo(Size.highlightedSize.height)
         }
@@ -300,7 +305,7 @@ class MainScreen: Screen {
         keypadContainer.snp.makeConstraints { make in
             make.leading.trailing.width.equalTo(buttonContainer)
             make.top.equalTo(buttonContainer.snp.bottom)
-            keypadContainerBottom = make.bottom.equalTo(self).constraint
+            keypadContainerBottom = make.bottom.equalTo(self).offset(-Size.bottomMargin).constraint
         }
         keypadContainerBottom?.deactivate()
 
@@ -403,7 +408,7 @@ class MainScreen: Screen {
         keypad00.snp.makeConstraints { make in
             make.top.equalTo(keypad2.snp.bottom).offset(Size.margin)
             make.centerX.equalTo(keypadContainer)
-            make.bottom.equalTo(keypadContainer).offset(-Size.margin)
+            make.bottom.equalTo(keypadContainer)//.offset(-Size.margin)
         }
         keypad000.snp.makeConstraints { make in
             make.top.equalTo(keypad00)
@@ -426,8 +431,8 @@ class MainScreen: Screen {
         memFeed.snp.makeConstraints { make in
             make.edges.equalTo(memView).inset(Size.margin).priority(Priority.High)
         }
-        memFeed.setContentHuggingPriority(UILayoutPriorityDefaultLow, for: .horizontal)
-        memFeed.setContentHuggingPriority(UILayoutPriorityDefaultLow, for: .vertical)
+        memFeed.setContentHuggingPriority(UILayoutPriority.defaultLow, for: .horizontal)
+        memFeed.setContentHuggingPriority(UILayoutPriority.defaultLow, for: .vertical)
 
         overlay.snp.makeConstraints { make in
             make.edges.equalTo(self)
@@ -467,14 +472,14 @@ class MainScreen: Screen {
 
 extension MainScreen {
     func updateScores() {
-        let normal: [String: AnyObject] = [
-            NSFontAttributeName: UIFont(name: "HelveticaNeue-Light", size: 14)!,
-            NSForegroundColorAttributeName: UIColor.black,
+        let normal: [NSAttributedStringKey: AnyObject] = [
+            NSAttributedStringKey.font: UIFont(name: "HelveticaNeue-Light", size: 14)!,
+            NSAttributedStringKey.foregroundColor: UIColor.black,
         ]
-        let underlined: [String: AnyObject] = [
-            NSFontAttributeName: UIFont(name: "HelveticaNeue-Light", size: 14)!,
-            NSForegroundColorAttributeName: UIColor.black,
-            NSUnderlineStyleAttributeName: NSUnderlineStyle.styleSingle.rawValue as AnyObject,
+        let underlined: [NSAttributedStringKey: AnyObject] = [
+            NSAttributedStringKey.font: UIFont(name: "HelveticaNeue-Light", size: 14)!,
+            NSAttributedStringKey.foregroundColor: UIColor.black,
+            NSAttributedStringKey.underlineStyle: NSUnderlineStyle.styleSingle.rawValue as AnyObject,
         ]
         for (index, player) in activePlayers.enumerated() {
             let playerView = playerButtons[index]
@@ -546,8 +551,8 @@ extension MainScreen {
             box.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 20)
             box.titleLabel!.textAlignment = .center
             box.titleLabel!.adjustsFontSizeToFitWidth = true
-            box.titleLabel!.setContentHuggingPriority(UILayoutPriorityDefaultLow, for: .horizontal)
-            box.titleLabel!.setContentHuggingPriority(UILayoutPriorityDefaultLow, for: .vertical)
+            box.titleLabel!.setContentHuggingPriority(UILayoutPriority.defaultLow, for: .horizontal)
+            box.titleLabel!.setContentHuggingPriority(UILayoutPriority.defaultLow, for: .vertical)
 
             playerButtons.append(box)
             namesView.addSubview(box)
@@ -637,19 +642,19 @@ extension MainScreen {
 
 // MARK: Actions
 extension MainScreen {
-    func restartTapped() {
+    @objc func restartTapped() {
         showConfirm("Restart game?") {
             self.delegate?.restartTapped()
         }
     }
-    func undoTapped() {
+    @objc func undoTapped() {
         delegate?.undoTapped()
     }
-    func clearTapped() {
+    @objc func clearTapped() {
         delegate?.clearTapped()
     }
 
-    func keypadTapped() {
+    @objc func keypadTapped() {
         keypadVisible = !keypadVisible
         if keypadVisible {
             buttonContainerBottom?.deactivate()
@@ -664,7 +669,7 @@ extension MainScreen {
         }
     }
 
-    func keypadNumberTapped(_ sender: UIButton) {
+    @objc func keypadNumberTapped(_ sender: UIButton) {
         switch sender {
         case keypad1: delegate?.concat(number: "1")
         case keypad2: delegate?.concat(number: "2")
@@ -682,11 +687,11 @@ extension MainScreen {
         }
     }
 
-    func signTapped() {
+    @objc func signTapped() {
         delegate?.signTapped()
     }
 
-    func adjustScoresTapped(_ sender: UIButton) {
+    @objc func adjustScoresTapped(_ sender: UIButton) {
         if let index = scoreButtons.index(of: sender) {
             if index == currentPlayer {
                 showScores()
@@ -697,47 +702,47 @@ extension MainScreen {
         }
     }
 
-    func playerTapped(_ sender: UIButton) {
+    @objc func playerTapped(_ sender: UIButton) {
         if let index = playerButtons.index(of: sender) {
             currentPlayer = index
         }
     }
 
-    func okTapped() {
+    @objc func okTapped() {
         delegate?.okTapped()
     }
 
-    func memTapped() {
+    @objc func memTapped() {
         delegate?.memTapped()
     }
 
-    func minusFiveTapped() {
+    @objc func minusFiveTapped() {
         delegate?.minusFiveTapped()
     }
 
-    func minusOneTapped() {
+    @objc func minusOneTapped() {
         delegate?.minusOneTapped()
     }
 
-    func plusOneTapped() {
+    @objc func plusOneTapped() {
         delegate?.plusOneTapped()
     }
 
-    func plusFiveTapped() {
+    @objc func plusFiveTapped() {
         delegate?.plusFiveTapped()
     }
 
-    func addPlayerTapped() {
+    @objc func addPlayerTapped() {
         delegate?.addPlayerTapped()
     }
 
-    func confirmTapped() {
+    @objc func confirmTapped() {
         confirmHandler?()
         confirmHandler = nil
         hideOverlay()
     }
 
-    func cancelTapped() {
+    @objc func cancelTapped() {
         confirmHandler = nil
         hideOverlay()
     }
@@ -751,7 +756,7 @@ extension MainScreen {
         }
     }
 
-    func showConfirm(_ message: String, handler: @escaping BasicBlock) {
+    func showConfirm(_ message: String, handler: @escaping Block) {
         confirmButton.setTitle(message, for: .normal)
         showOverlay()
         confirmHandler = handler
@@ -793,7 +798,7 @@ extension MainScreen {
         confirmButtons.isHidden = true
     }
 
-    func hideOverlay() {
+    @objc func hideOverlay() {
         if !playerTable.isHidden {
             let prevPlayers = activePlayers.map { $0.name }
             let currentPlayers: [Player] = playerTableHelper.savedPlayers.sorted(by: { $0.0 < $1.0 }).map { _, name in

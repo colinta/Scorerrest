@@ -10,14 +10,14 @@
 
 import Foundation
 
-public struct TypedNotification<A> {
-    public let name: String
-    public init(name: String) {
+struct TypedNotification<A> {
+    let name: String
+    init(name: String) {
         self.name = name
     }
 }
 
-public func postNotification<A>(_ note: TypedNotification<A>, value: A) {
+func postNotification<A>(_ note: TypedNotification<A>, value: A) {
     let userInfo = ["value": Box(value)]
     NotificationCenter.default.post(name: Notification.Name(rawValue: note.name), object: nil, userInfo: userInfo)
 }
@@ -25,7 +25,7 @@ public func postNotification<A>(_ note: TypedNotification<A>, value: A) {
 open class NotificationObserver {
     let observer: NSObjectProtocol
 
-    public init<A>(notification: TypedNotification<A>, block aBlock: @escaping (A) -> Void) {
+    init<A>(notification: TypedNotification<A>, block aBlock: @escaping (A) -> Void) {
         observer = NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: notification.name), object: nil, queue: nil) { note in
             if let value = ((note as NSNotification).userInfo?["value"] as? Box<A>)?.value {
                 aBlock(value)
