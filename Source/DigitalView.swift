@@ -71,7 +71,7 @@ class DigitalView: UIView {
     }
 
     override var intrinsicContentSize: CGSize {
-        let len = CGFloat(max(minTextLength, text.characters.count))
+        let len = CGFloat(max(minTextLength, text.count))
         return CGSize(width: Size.letterSize.width * len, height: Size.letterSize.height)
     }
 
@@ -79,11 +79,11 @@ class DigitalView: UIView {
     //|  DRAWING
     //|
     func drawLetterWidth() -> CGFloat {
-        if CGFloat(text.characters.count) * Size.letterSize.width < frame.width {
+        if CGFloat(text.count) * Size.letterSize.width < frame.width {
             return Size.letterSize.width
         }
         else {
-            return floor(frame.width / CGFloat(text.characters.count))
+            return floor(frame.width / CGFloat(text.count))
         }
     }
 
@@ -96,19 +96,19 @@ class DigitalView: UIView {
     }
 
     override func draw(_ frame: CGRect) {
-        let length = max(minTextLength, text.characters.count)
+        let length = max(minTextLength, text.count)
         let totalWidth = CGFloat(length) * self.drawLetterWidth()
         var x = (frame.width - totalWidth) / 2
 
-        if minTextLength > text.characters.count {
-            times(minTextLength - text.characters.count) {
+        if minTextLength > text.count {
+            times(minTextLength - text.count) {
                 // just draws the background
                 drawBackground(at: x)
                 x += drawLetterWidth()
             }
         }
 
-        for letter in text.characters.map({ String($0) }) {
+        for letter in text.map({ String($0) }) {
             drawLetter(letter, at: x)
             x += drawLetterWidth()
         }
@@ -188,7 +188,7 @@ class DigitalView: UIView {
     }
 
     override func sizeThatFits(_ size: CGSize) -> CGSize {
-        let length = max(minTextLength, text.characters.count)
+        let length = max(minTextLength, text.count)
         return CGSize(width: CGFloat(length) * Size.letterSize.width, height: Size.letterSize.height)
     }
 

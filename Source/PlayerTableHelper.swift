@@ -119,7 +119,7 @@ extension PlayerTableHelper: UIAlertViewDelegate {
 
     func alertView(_ alertView: UIAlertView, clickedButtonAt buttonIndex: Int) {
         if buttonIndex == 1, let name = alertView.textField(at: 0)?.text
-        , !name.characters.isEmpty && !allPlayers.contains(name)
+        , !name.isEmpty && !allPlayers.contains(name)
         {
             allPlayers.append(name)
             table.reloadData()
