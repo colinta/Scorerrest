@@ -13,31 +13,31 @@
     {
       "size" : "29x29",
       "idiom" : "iphone",
-      "filename" : "icon-29_1x.png",
+      "filename" : "Scorerrest-29_1x.png",
       "scale" : "1x"
     },
     {
       "size" : "29x29",
       "idiom" : "iphone",
-      "filename" : "icon-29_2x.png",
+      "filename" : "Scorerrest-29_2x.png",
       "scale" : "2x"
     },
     {
       "size" : "29x29",
       "idiom" : "iphone",
-      "filename" : "icon-29_3x.png",
+      "filename" : "Scorerrest-29_3x.png",
       "scale" : "3x"
     },
     {
       "size" : "40x40",
       "idiom" : "iphone",
-      "filename" : "icon-40_2x.png",
+      "filename" : "Scorerrest-40_2x.png",
       "scale" : "2x"
     },
     {
       "size" : "40x40",
       "idiom" : "iphone",
-      "filename" : "icon-40_3x.png",
+      "filename" : "Scorerrest-40_3x.png",
       "scale" : "3x"
     },
     {
@@ -53,13 +53,13 @@
     {
       "size" : "60x60",
       "idiom" : "iphone",
-      "filename" : "icon-60_2x.png",
+      "filename" : "Scorerrest-60_2x.png",
       "scale" : "2x"
     },
     {
       "size" : "60x60",
       "idiom" : "iphone",
-      "filename" : "icon-60_3x.png",
+      "filename" : "Scorerrest-60_3x.png",
       "scale" : "3x"
     },
     {
@@ -75,25 +75,25 @@
     {
       "size" : "29x29",
       "idiom" : "ipad",
-      "filename" : "icon-29_1x-1.png",
+      "filename" : "Scorerrest-29_1x-1.png",
       "scale" : "1x"
     },
     {
       "size" : "29x29",
       "idiom" : "ipad",
-      "filename" : "icon-29_2x-1.png",
+      "filename" : "Scorerrest-29_2x-1.png",
       "scale" : "2x"
     },
     {
       "size" : "40x40",
       "idiom" : "ipad",
-      "filename" : "icon-40_1x.png",
+      "filename" : "Scorerrest-40_1x.png",
       "scale" : "1x"
     },
     {
       "size" : "40x40",
       "idiom" : "ipad",
-      "filename" : "icon-40_2x-1.png",
+      "filename" : "Scorerrest-40_2x-1.png",
       "scale" : "2x"
     },
     {
@@ -119,19 +119,19 @@
     {
       "size" : "76x76",
       "idiom" : "ipad",
-      "filename" : "icon-76_1x.png",
+      "filename" : "Scorerrest-76_1x.png",
       "scale" : "1x"
     },
     {
       "size" : "76x76",
       "idiom" : "ipad",
-      "filename" : "icon-76_2x.png",
+      "filename" : "Scorerrest-76_2x.png",
       "scale" : "2x"
     },
     {
       "size" : "83.5x83.5",
       "idiom" : "ipad",
-      "filename" : "icon-83_2x.png",
+      "filename" : "Scorerrest-83_2x.png",
       "scale" : "2x"
     },
     {
