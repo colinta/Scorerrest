@@ -31,7 +31,7 @@ extension PlayerTableHelper: UITableViewDataSource {
         return indexPath.row < allPlayers.count
     }
 
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             var newPlayers: [String] = []
             for (index, name) in allPlayers.enumerated() {

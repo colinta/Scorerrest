@@ -26,7 +26,7 @@ extension ScoresTableHelper: UITableViewDataSource {
         return indexPath.row < scores.count
     }
 
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             var newScores: [Int] = []
             for (index, score) in scores.enumerated() where index != indexPath.row {

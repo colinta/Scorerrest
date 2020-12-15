@@ -26,12 +26,6 @@ class MainScreen: Screen {
         static let margin: CGFloat = 5
         static let buttonContainerMaxWidth: CGFloat = 400
         static let currentScoreMaxWidth: CGFloat = 260
-        static let topMargin: CGFloat = {
-            return isX() ? 44 : 20
-        }()
-        static let bottomMargin: CGFloat = {
-            return isX() ? 22 : 10
-        }()
         static let buttonOverlap: CGFloat = 5
         static let gradientWidth: CGFloat = 30
         static let highlightedSize = CGSize(width: 90, height: 50)
@@ -267,7 +261,7 @@ class MainScreen: Screen {
         confirmButtons.addSubview(cancelButton)
 
         namesView.snp.makeConstraints { make in
-            make.top.equalTo(self).offset(Size.topMargin)
+            make.top.equalTo(self.safeAreaLayoutGuide.snp.topMargin)
             make.leading.trailing.equalTo(self)
             make.height.equalTo(Size.highlightedSize.height)
         }
@@ -305,7 +299,7 @@ class MainScreen: Screen {
         keypadContainer.snp.makeConstraints { make in
             make.leading.trailing.width.equalTo(buttonContainer)
             make.top.equalTo(buttonContainer.snp.bottom)
-            keypadContainerBottom = make.bottom.equalTo(self).offset(-Size.bottomMargin).constraint
+            keypadContainerBottom = make.bottom.equalTo(self.safeAreaLayoutGuide.snp.bottom).constraint
         }
         keypadContainerBottom?.deactivate()
 
@@ -317,7 +311,7 @@ class MainScreen: Screen {
         }
         keypadButton.snp.makeConstraints { make in
             make.leading.equalTo(buttonContainer).offset(Size.margin)
-            make.bottom.equalTo(buttonContainer).offset(-Size.bottomMargin)
+            make.bottom.equalTo(buttonContainer.safeAreaLayoutGuide.snp.bottom)
         }
         clearButton.snp.makeConstraints { make in
             make.leading.equalTo(buttonContainer).offset(Size.margin)
@@ -329,7 +323,7 @@ class MainScreen: Screen {
         }
         okButton.snp.makeConstraints { make in
             make.trailing.equalTo(buttonContainer).offset(-Size.margin)
-            make.bottom.equalTo(buttonContainer).offset(-Size.bottomMargin)
+            make.bottom.equalTo(buttonContainer.safeAreaLayoutGuide.snp.bottom)
         }
         memButton.snp.makeConstraints { make in
             make.trailing.equalTo(buttonContainer).offset(-Size.margin)
@@ -472,14 +466,14 @@ class MainScreen: Screen {
 
 extension MainScreen {
     func updateScores() {
-        let normal: [NSAttributedStringKey: AnyObject] = [
-            NSAttributedStringKey.font: UIFont(name: "HelveticaNeue-Light", size: 14)!,
-            NSAttributedStringKey.foregroundColor: UIColor.black,
+        let normal: [NSAttributedString.Key: AnyObject] = [
+            NSAttributedString.Key.font: UIFont(name: "HelveticaNeue-Light", size: 14)!,
+            NSAttributedString.Key.foregroundColor: UIColor.black,
         ]
-        let underlined: [NSAttributedStringKey: AnyObject] = [
-            NSAttributedStringKey.font: UIFont(name: "HelveticaNeue-Light", size: 14)!,
-            NSAttributedStringKey.foregroundColor: UIColor.black,
-            NSAttributedStringKey.underlineStyle: NSUnderlineStyle.styleSingle.rawValue as AnyObject,
+        let underlined: [NSAttributedString.Key: AnyObject] = [
+            NSAttributedString.Key.font: UIFont(name: "HelveticaNeue-Light", size: 14)!,
+            NSAttributedString.Key.foregroundColor: UIColor.black,
+            NSAttributedString.Key.underlineStyle: NSUnderlineStyle.single.rawValue as AnyObject,
         ]
         for (index, player) in activePlayers.enumerated() {
             let playerView = playerButtons[index]
@@ -692,7 +686,7 @@ extension MainScreen {
     }
 
     @objc func adjustScoresTapped(_ sender: UIButton) {
-        if let index = scoreButtons.index(of: sender) {
+        if let index = scoreButtons.firstIndex(of: sender) {
             if index == currentPlayer {
                 showScores()
             }
@@ -703,7 +697,7 @@ extension MainScreen {
     }
 
     @objc func playerTapped(_ sender: UIButton) {
-        if let index = playerButtons.index(of: sender) {
+        if let index = playerButtons.firstIndex(of: sender) {
             currentPlayer = index
         }
     }
