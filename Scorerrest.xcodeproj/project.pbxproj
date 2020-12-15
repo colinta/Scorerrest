@@ -258,7 +258,7 @@
 				ORGANIZATIONNAME = colinta;
 				TargetAttributes = {
 					EC99F0CB65265889E8559483 = {
-						DevelopmentTeam = 5QDS9Z456R;
+						DevelopmentTeam = 325ZCV49Y4;
 						LastSwiftMigration = 0910;
 					};
 				};
@@ -268,6 +268,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 024F9DAB2F2FA85630246500;
@@ -394,6 +395,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 325ZCV49Y4;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Support/Info.plist;
@@ -418,7 +420,7 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 5QDS9Z456R;
+				DEVELOPMENT_TEAM = 325ZCV49Y4;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Support/Info.plist;
